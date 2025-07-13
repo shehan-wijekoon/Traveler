@@ -6,14 +6,16 @@ import androidx.activity.compose.setContent
 import com.example.traveler.ui.theme.TravelerTheme
 import com.example.traveler.ui.screens.LoginScreen
 import com.example.traveler.ui.screens.SignUpScreen
+import com.example.traveler.ui.screens.ContentScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             TravelerTheme {
-                SignUpScreen()
+                //SignUpScreen()
                 //LoginScreen()
+                ContentScreen()
             }
         }
     }
