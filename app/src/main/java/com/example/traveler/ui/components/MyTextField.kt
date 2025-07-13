@@ -5,31 +5,36 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.unit.dp
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TextField
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun MyTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
+    state: TextFieldState,
     placeholder: String
 ) {
-    TextField(
-        value = value,
-        onValueChange = onValueChange,
-        placeholder = { Text(placeholder) },
+    OutlinedTextField(
+        value = state.text,
+        onValueChange = { state.text = it },
+        label = { Text(placeholder ,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Normal,
+                        color = Color.DarkGray) )},
         modifier = Modifier
             .fillMaxWidth()
-            .height(55.dp),
+            .height(60.dp),
         shape = RoundedCornerShape(15.dp),
-        colors = TextFieldDefaults.colors(
-            unfocusedContainerColor = Color(0xFFEAEAEA),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = Color.Black,
+            unfocusedBorderColor = Color.Gray,
+            focusedLabelColor = Color.DarkGray,
+            unfocusedLabelColor = Color.Gray,
             focusedContainerColor = Color(0xFFEAEAEA),
-            unfocusedIndicatorColor = Color.Transparent,
-            focusedIndicatorColor = Color.Transparent
+            unfocusedContainerColor = Color(0xFFEAEAEA),
+            cursorColor = Color.Black
         )
     )
 }
+

@@ -12,14 +12,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import com.example.traveler.R
+import com.example.traveler.ui.components.FaceBookButton
 import com.example.traveler.ui.components.MyButton
 import com.example.traveler.ui.components.MyTextField
 import com.example.traveler.ui.components.GoogleButton
+import com.example.traveler.ui.components.TextFieldState
+
 
 @Composable
 fun LoginScreen() {
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    val usernameState = remember { TextFieldState() }
+    val passwordState = remember { TextFieldState() }
 
     Column(
         modifier = Modifier
@@ -43,13 +46,19 @@ fun LoginScreen() {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        MyTextField(value = username, onValueChange = { username = it }, placeholder = "Username")
+        MyTextField(state = usernameState, placeholder = "Username")
         Spacer(modifier = Modifier.height(10.dp))
-        MyTextField(value = password, onValueChange = { password = it }, placeholder = "Password")
+        MyTextField(state = passwordState, placeholder = "Password")
         Spacer(modifier = Modifier.height(10.dp))
 
         GoogleButton {
             // Google login logic
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        FaceBookButton {
+            //face book login logics
         }
 
         Spacer(modifier = Modifier.height(30.dp))
