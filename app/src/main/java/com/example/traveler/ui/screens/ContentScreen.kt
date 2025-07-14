@@ -17,7 +17,11 @@ import com.example.traveler.R
 @Composable
 fun ContentScreen() {
     val scrollState = rememberScrollState()
-    val image = painterResource(id = R.drawable.amazon_forest)
+    val imageList = listOf(
+        painterResource(id = R.drawable.amazon_forest),
+        painterResource(id = R.drawable.amazon_forest_2),
+        painterResource(id = R.drawable.amazon_forest_3)
+    )
 
     Column(
         modifier = Modifier
@@ -27,7 +31,7 @@ fun ContentScreen() {
         HeaderBar(onBackClick = { /* Handle back */ }, onMenuClick = { /* Handle menu */ })
 
         ImageCard(
-            imageRes = image,
+            imageResList = imageList,
             title = "Amazon Rain Forest",
             location = "Codajás, State of Amazonas, Brazil"
         )
