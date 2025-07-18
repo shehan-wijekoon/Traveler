@@ -11,16 +11,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
+import androidx.navigation.NavController
 import com.example.traveler.R
 import com.example.traveler.ui.components.FaceBookButton
 import com.example.traveler.ui.components.MyButton
 import com.example.traveler.ui.components.MyTextField
 import com.example.traveler.ui.components.GoogleButton
 import com.example.traveler.ui.components.TextFieldState
+import com.example.traveler.viewmodel.AuthViewModel
 
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(modifier: Modifier, navController: NavController, authViewModel: AuthViewModel) {
     val usernameState = remember { TextFieldState() }
     val passwordState = remember { TextFieldState() }
 
@@ -63,8 +65,10 @@ fun LoginScreen() {
 
         Spacer(modifier = Modifier.height(30.dp))
 
-        MyButton(text = "Loging") {
+        MyButton(text = "Login") {
             // Perform login
         }
+
+        TextButton(onClick = { navController.navigate("signup")}) { Text(text = "don't have any account, signup here")}
     }
 }

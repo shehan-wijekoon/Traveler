@@ -18,12 +18,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.traveler.ui.components.*
-
+import com.example.traveler.viewmodel.AuthViewModel
 
 
 @Composable
-fun SignUpScreen() {
+fun SignUpScreen(modifier: Modifier, navController: NavController, authViewModel: AuthViewModel) {
     val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
