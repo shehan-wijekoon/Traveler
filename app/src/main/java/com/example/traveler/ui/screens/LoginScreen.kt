@@ -23,7 +23,8 @@ import com.example.traveler.viewmodel.AuthViewModel
 
 @Composable
 fun LoginScreen(modifier: Modifier, navController: NavController, authViewModel: AuthViewModel) {
-    val usernameState = remember { TextFieldState() }
+    //val usernameState = remember { TextFieldState() }
+    val gmailState = remember { TextFieldState() }
     val passwordState = remember { TextFieldState() }
 
     Column(
@@ -48,7 +49,8 @@ fun LoginScreen(modifier: Modifier, navController: NavController, authViewModel:
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        MyTextField(state = usernameState, placeholder = "Username")
+        //MyTextField(state = usernameState, placeholder = "Username")
+        MyTextField(state = gmailState, placeholder = "gmail")
         Spacer(modifier = Modifier.height(10.dp))
         MyTextField(state = passwordState, placeholder = "Password")
         Spacer(modifier = Modifier.height(10.dp))

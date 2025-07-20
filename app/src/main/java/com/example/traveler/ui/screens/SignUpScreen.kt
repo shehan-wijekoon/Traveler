@@ -34,7 +34,7 @@ fun SignUpScreen(modifier: Modifier, navController: NavController, authViewModel
         imageUri = uri
     }
 
-    val nameState = remember { TextFieldState() }
+    //val nameState = remember { TextFieldState() }
     val emailState = remember { TextFieldState() }
     val passwordState = remember { TextFieldState() }
 
@@ -74,8 +74,8 @@ fun SignUpScreen(modifier: Modifier, navController: NavController, authViewModel
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        MyTextField(state = nameState, placeholder = "Full Name")
-        Spacer(modifier = Modifier.height(10.dp))
+        //MyTextField(state = nameState, placeholder = "Full Name")
+        //Spacer(modifier = Modifier.height(10.dp))
 
         MyTextField(state = emailState, placeholder = "Email")
         Spacer(modifier = Modifier.height(10.dp))
