@@ -34,7 +34,7 @@ fun SignUpScreen(modifier: Modifier, navController: NavController, authViewModel
         imageUri = uri
     }
 
-    //val nameState = remember { TextFieldState() }
+    val nameState = remember { TextFieldState() }
     val emailState = remember { TextFieldState() }
     val passwordState = remember { TextFieldState() }
 
