@@ -26,21 +26,6 @@ import com.example.traveler.ui.components.CategoryTab
 import com.example.traveler.ui.components.ContentCard
 import com.example.traveler.R
 
-
-// IMPORTANT: This file assumes the existence of the following composables:
-// - YourAppTheme
-// - ContentCard
-// - CategoryTab
-// These should be defined in a separate file or above this code block in your project.
-
-// Also, ensure you have drawable resources:
-// R.drawable.jungle_image_1
-// R.drawable.jungle_image_2
-
-/**
- * Main composable for the Discover screen.
- * This is where all the components are called and used.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiscoverScreen() {

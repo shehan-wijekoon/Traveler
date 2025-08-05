@@ -16,6 +16,7 @@ import com.example.traveler.controllers.Navigation
 import com.example.traveler.ui.screens.ContentScreen
 import com.example.traveler.ui.screens.DiscoverScreen
 import com.example.traveler.ui.screens.SignUpScreen
+import com.example.traveler.ui.screens.TravelersGuideScreen
 import com.example.traveler.ui.theme.TravelerTheme
 import com.example.traveler.viewmodel.AuthViewModel
 
@@ -25,6 +26,7 @@ class MainActivity : ComponentActivity() {
         setContent {
 
             /*
+
             ContentScreen()
             val navController = rememberNavController()
             val authViewModel: AuthViewModel = viewModel()
@@ -32,7 +34,7 @@ class MainActivity : ComponentActivity() {
                 modifier = Modifier.fillMaxSize(),
                 navController = navController,
                 authViewModel = authViewModel
-           )
+            )
 
             val navController = rememberNavController()
             val authViewModel: AuthViewModel = viewModel()
@@ -43,14 +45,14 @@ class MainActivity : ComponentActivity() {
                 authViewModel = authViewModel
             )
 
-             */
+            */
 
             TravelerTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    DiscoverScreen()
+                    TravelersGuideScreen()
                 }
             }
         }

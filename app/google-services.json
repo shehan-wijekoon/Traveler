@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "6560984856",
+    "firebase_url": "https://weatherapp-e50e5-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "weatherapp-e50e5",
+    "storage_bucket": "weatherapp-e50e5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:6560984856:android:a118b1134850f0553e786d",
+        "android_client_info": {
+          "package_name": "com.example.traveler"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBpP8SveeTtwwSA8nn7egZMBH15y5qrFY8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

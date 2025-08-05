@@ -29,7 +29,7 @@ fun CategoryTab(
             containerColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
             contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
         ),
-        shape = RoundedCornerShape(50) // Pill shape
+        shape = RoundedCornerShape(50)
     ) {
         Text(text = text, fontSize = 16.sp)
     }
