@@ -2,13 +2,18 @@ package com.example.traveler.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
 import com.google.firebase.Firebase
+import com.github.mikephil.charting.data.Entry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 // Data class to represent a single data point from the database
 data class Reading(
@@ -37,14 +42,25 @@ class TravelersGuideViewModel : ViewModel() {
     private val _altitude = MutableStateFlow("Loading...")
     val altitude: StateFlow<String> = _altitude
 
-    // New StateFlow to hold historical data for the graph
+    // StateFlow to hold historical data for the graph
     private val _historicalReadings = MutableStateFlow<List<Reading>>(emptyList())
     val historicalReadings: StateFlow<List<Reading>> = _historicalReadings
+
+    //StateFlow to hold the chart data in MPAndroidChart's format
+    val temperatureChartEntries: StateFlow<List<Entry>> = _historicalReadings.map { readings ->
+        readings.mapIndexed { index, reading ->
+            Entry(index.toFloat(), reading.temperature.toFloatOrNull() ?: 0f)
+        }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val _predictedData = MutableStateFlow("Loading...")
     val predictedData: StateFlow<String> = _predictedData
 
     init {
+        initiateDataFetch()
+    }
+
+    fun initiateDataFetch() {
         fetchLatestData()
         fetchHistoricalData()
     }
