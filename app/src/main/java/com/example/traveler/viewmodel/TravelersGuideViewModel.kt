@@ -73,11 +73,18 @@ class TravelersGuideViewModel : ViewModel() {
                     for (childSnapshot in snapshot.children) {
                         val data = childSnapshot.getValue() as? Map<String, Any>
                         if (data != null) {
-                            _temperature.value = (data["temperature_C"]?.toString() ?: "-") + " °C"
-                            _pressure.value = (data["pressure_hPa"]?.toString() ?: "-") + " hPa"
-                            _altitude.value = (data["altitude_meters"]?.toString() ?: "-") + " m"
+                            // NEW: Format the temperature to two decimal places
+                            val temp = data["temperature_C"]?.toString()?.toFloatOrNull()
+                            _temperature.value = if (temp != null) String.format("%.2f", temp) else "-"
 
-                            // Predicted Data logic will go here
+                            // NEW: Format the pressure to two decimal places
+                            val pressureValue = data["pressure_hPa"]?.toString()?.toFloatOrNull()
+                            _pressure.value = if (pressureValue != null) String.format("%.2f", pressureValue) else "-"
+
+                            // NEW: Format the altitude to two decimal places
+                            val altitudeValue = data["altitude_meters"]?.toString()?.toFloatOrNull()
+                            _altitude.value = if (altitudeValue != null) String.format("%.2f", altitudeValue) else "-"
+
                             _predictedData.value = "Not Implemented"
                         }
                     }
@@ -95,7 +102,7 @@ class TravelersGuideViewModel : ViewModel() {
 
     private fun fetchHistoricalData() {
         // Fetch the last 100 entries for the graph
-        dbRef.limitToLast(100).addListenerForSingleValueEvent(object : ValueEventListener {
+        dbRef.limitToLast(20).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val readings = mutableListOf<Reading>()
                 for (childSnapshot in snapshot.children) {

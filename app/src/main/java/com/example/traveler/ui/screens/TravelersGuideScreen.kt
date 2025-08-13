@@ -29,15 +29,27 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.data.Entry
+// NEW: Import ContextCompat to use the drawable file
+import androidx.core.content.ContextCompat
+import com.example.traveler.R // NEW: Import your project's resources
+import androidx.compose.ui.unit.sp
+
+//
+import com.github.mikephil.charting.components.YAxis
+import androidx.compose.ui.viewinterop.AndroidView
+import com.github.mikephil.charting.components.MarkerView
+import com.github.mikephil.charting.highlight.Highlight
+import com.github.mikephil.charting.utils.MPPointF
+import android.widget.TextView
+import android.view.View
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TravelersGuideScreen(
     travelersGuideViewModel: TravelersGuideViewModel = viewModel()
 ) {
-    val context = LocalContext.current // added to get the context for ViewModel
-    LaunchedEffect(key1 = Unit) { // added to trigger data fetching once
-        // FIX: The initialize method is not in your ViewModel. We'll add a call to fetchHistoricalData() here.
+    val context = LocalContext.current
+    LaunchedEffect(key1 = Unit) {
         travelersGuideViewModel.initiateDataFetch()
     }
 
@@ -45,12 +57,8 @@ fun TravelersGuideScreen(
     val humidity by travelersGuideViewModel.humidity.collectAsState()
     val pressure by travelersGuideViewModel.pressure.collectAsState()
     val altitude by travelersGuideViewModel.altitude.collectAsState()
-
-    // FIX: Changed to 'historicalReadings' to match the ViewModel
     val historicalReadings by travelersGuideViewModel.historicalReadings.collectAsState()
-
     val predictedData by travelersGuideViewModel.predictedData.collectAsState()
-
     val temperatureChartEntries by travelersGuideViewModel.temperatureChartEntries.collectAsState()
     Scaffold(
         topBar = {
@@ -67,41 +75,42 @@ fun TravelersGuideScreen(
                     }
                 }
             )
-        }
+        },
+        // NEW: Set a light, modern background color for the screen
+        containerColor = Color(0xFFF0F5F9)
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp) // NEW: Use vertical and horizontal padding for better spacing
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // NEW: Added a dedicated, prominent temperature display for the current reading
+            TemperatureDisplay(value = temperature, modifier = Modifier.padding(vertical = 16.dp))
 
+            // NEW: Replaced DataCircle with a more modern DataCard design
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                DataCircle(label = "Temperature", value = temperature)
-                DataCircle(label = "Humidity", value = humidity)
-                DataCircle(label = "Pressure", value = pressure)
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Box(modifier = Modifier.padding(24.dp), contentAlignment = Alignment.Center) {
-                    Text("Altitude: $altitude")
-                }
+                DataCard(label = "Humidity", value = humidity)
+                DataCard(label = "Pressure", value = pressure)
+                DataCard(label = "Altitude", value = altitude)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // FIX: This section is completely changed to render the chart
-            Text("Temperature Graph", style = MaterialTheme.typography.titleMedium)
+            // NEW: The Card holding the chart is now a rounded rectangle
+            Text("Temperature Graph", style = MaterialTheme.typography.titleLarge) // NEW: Larger title
+            Spacer(modifier = Modifier.height(8.dp))
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .height(300.dp),
+                shape = MaterialTheme.shapes.medium, // NEW: Use medium rounded corners for the Card
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+
             ) {
                 if (temperatureChartEntries.isNotEmpty()) {
                     TemperatureLineChart(entries = temperatureChartEntries)
@@ -114,53 +123,129 @@ fun TravelersGuideScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text("Predicted Data", style = MaterialTheme.typography.titleMedium)
+            // NEW: The Card for predicted data also uses a modern shape
+            Text("Predicted Data", style = MaterialTheme.typography.titleLarge) // NEW: Larger title
+            Spacer(modifier = Modifier.height(8.dp))
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp)
+                    .height(150.dp),
+                shape = MaterialTheme.shapes.medium,
+                colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(predictedData)
                 }
             }
-
-
         }
     }
 }
 
+// NEW: A new Composable for a prominent temperature reading
+@Composable
+fun TemperatureDisplay(value: String, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier
+            .width(200.dp)
+            .height(200.dp),
+        shape = CircleShape,
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD)) // NEW: Use a light blue background
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(value, style = MaterialTheme.typography.displayMedium.copy(color = Color(0xFF1976D2))) // NEW: Large, bold text for the value
+            Text(
+                "°C",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    color = Color(0xFF1976D2),
+                    fontSize = 40.sp
+                )
+            )
+            Text("Current", style = MaterialTheme.typography.bodySmall.copy(color = Color.DarkGray)) // NEW: Secondary label
+        }
+    }
+}
+
+// NEW: A new Composable for other data points, using Card instead of Box
+@Composable
+fun DataCard(label: String, value: String) {
+    Card(
+        modifier = Modifier
+            .width(110.dp)
+            .height(90.dp),
+        shape = MaterialTheme.shapes.small,
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(label, style = MaterialTheme.typography.bodySmall, color = Color.Gray, maxLines = 1)
+            Spacer(modifier = Modifier.height(4.dp))
+            // NEW: Use a Row to align the value and unit side by side
+            if (label == "Pressure" || label == "Altitude") {
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(value, style = MaterialTheme.typography.bodyMedium, color = Color.Black, maxLines = 1)
+                    // NEW: Add the unit in a separate Text Composable
+                    if (label == "Pressure") {
+                        Text("hPa", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                    } else if (label == "Altitude") {
+                        Text("m", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                    }
+                }
+            } else {
+                Text(value, style = MaterialTheme.typography.bodyMedium, color = Color.Black, maxLines = 1)
+            }
+        }
+    }
+}
+
+
 @Composable
 fun TemperatureLineChart(entries: List<Entry>) {
+    val context = LocalContext.current
     AndroidView(
-        modifier = Modifier.fillMaxSize(),
-        factory = { context ->
-            LineChart(context).apply {
-                // Chart configuration
-                description.text = "Temperature Over Time"
-                description.textColor = Color.DarkGray.toArgb()
-                description.textSize = 10f
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        factory = {
+            LineChart(it).apply {
+                // NEW: Removed description text for a cleaner look
+                description.isEnabled = false
                 setDrawGridBackground(false)
                 setTouchEnabled(true)
                 isDragEnabled = true
                 setScaleEnabled(true)
                 setPinchZoom(true)
 
-                // X-Axis configuration
                 xAxis.apply {
                     position = XAxis.XAxisPosition.BOTTOM
                     setDrawGridLines(false)
                     setDrawAxisLine(true)
-                    granularity = 1f
                     textColor = Color.DarkGray.toArgb()
+                    granularity = 1f
                 }
 
-                // Y-Axis configuration
-                axisRight.isEnabled = false // Disable right-side Y-axis
+                axisRight.isEnabled = false
                 axisLeft.apply {
                     setDrawGridLines(true)
-                    setDrawAxisLine(true)
+                    gridColor = Color.LightGray.toArgb()
+                    // NEW: Removed the Y-axis line for a cleaner, floating look
+                    setDrawAxisLine(false)
                     textColor = Color.DarkGray.toArgb()
+
+                    // FIX: Set a custom Y-axis range here
+                    axisMinimum = 15f // Set a minimum value (e.g., 15°C)
+                    axisMaximum = 40f // Set a maximum value (e.g., 40°C)
                 }
 
                 legend.isEnabled = false
@@ -170,30 +255,19 @@ fun TemperatureLineChart(entries: List<Entry>) {
             if (entries.isNotEmpty()) {
                 val dataSet = LineDataSet(entries, "Temperature").apply {
                     setDrawCircles(false)
-                    color = Color(0xFF2196F3).toArgb() // Use nicer blue
-                    lineWidth = 2f
-                    valueTextSize = 0f // Don't show data point values on the line
+                    color = Color(0xFF2196F3).toArgb()
+                    lineWidth = 3f
+                    // NEW: Changed to 0f to remove data point values
+                    valueTextSize = 0f
+
+                    // NEW: Added these lines for a smooth, modern line with a gradient
+                    mode = LineDataSet.Mode.CUBIC_BEZIER
+                    setDrawFilled(true)
+                    fillDrawable = ContextCompat.getDrawable(context, R.drawable.fade_blue)
                 }
                 chart.data = LineData(dataSet)
-                chart.invalidate() // Refresh the chart
+                chart.invalidate()
             }
         }
     )
-}
-
-@Composable
-fun DataCircle(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(72.dp)
-                .border(2.dp, Color(0xFFB0BEC5), CircleShape)
-                .background(Color(0xFFF8FAFB), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(value, style = MaterialTheme.typography.bodyLarge)
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(label, style = MaterialTheme.typography.bodySmall)
-    }
 }
