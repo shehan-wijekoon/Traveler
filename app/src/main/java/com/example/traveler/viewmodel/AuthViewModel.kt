@@ -2,7 +2,7 @@ package com.example.traveler.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,39 +17,58 @@ sealed class AuthUiState {
 
 class AuthViewModel : ViewModel() {
 
+    private val auth = FirebaseAuth.getInstance()
     private val _authUiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
-
     val authUiState: StateFlow<AuthUiState> = _authUiState.asStateFlow()
 
     fun signUp(email: String, password: String) {
         _authUiState.value = AuthUiState.Loading
-
         viewModelScope.launch {
-
-            delay(2000)
-
-
-            if (email.contains("@") && password.length >= 6) {
-                _authUiState.value = AuthUiState.Success
-            } else {
-                _authUiState.value = AuthUiState.Error("Invalid email or password (min 6 chars).")
+            try {
+                auth.createUserWithEmailAndPassword(email, password)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            _authUiState.value = AuthUiState.Success
+                        } else {
+                            _authUiState.value = AuthUiState.Error(
+                                task.exception?.message ?: "Sign up failed."
+                            )
+                        }
+                    }
+            } catch (e: Exception) {
+                _authUiState.value = AuthUiState.Error(e.message ?: "An unexpected error occurred.")
             }
         }
     }
 
-    // Function to simulate a login process
     fun login(email: String, password: String) {
         _authUiState.value = AuthUiState.Loading
-
         viewModelScope.launch {
-            delay(1500)
-
-            if (email == "test@example.com" && password == "password") {
-                _authUiState.value = AuthUiState.Success
-            } else {
-                _authUiState.value = AuthUiState.Error("Invalid credentials.")
+            try {
+                auth.signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            _authUiState.value = AuthUiState.Success
+                        } else {
+                            _authUiState.value = AuthUiState.Error(
+                                task.exception?.message ?: "Login failed."
+                            )
+                        }
+                    }
+            } catch (e: Exception) {
+                _authUiState.value = AuthUiState.Error(e.message ?: "An unexpected error occurred.")
             }
         }
+    }
+
+    // Placeholder for Google login
+    fun googleLogin() {
+        // Implementation for Google Sign-In will go here
+    }
+
+    // Placeholder for Facebook login
+    fun facebookLogin() {
+        // Implementation for Facebook Sign-In will go here
     }
 
     fun resetAuthUiState() {

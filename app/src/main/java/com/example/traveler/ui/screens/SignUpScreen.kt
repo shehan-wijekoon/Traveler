@@ -1,42 +1,51 @@
 package com.example.traveler.ui.screens
 
-import coil.compose.rememberAsyncImagePainter
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.traveler.ui.components.*
+import com.example.traveler.ui.components.FaceBookButton
+import com.example.traveler.ui.components.GoogleButton
+import com.example.traveler.ui.components.MyButton
+import com.example.traveler.ui.components.MyTextField
+import com.example.traveler.ui.components.TextFieldState
+import com.example.traveler.viewmodel.AuthUiState
 import com.example.traveler.viewmodel.AuthViewModel
 
 
 @Composable
 fun SignUpScreen(modifier: Modifier, navController: NavController, authViewModel: AuthViewModel) {
     val context = LocalContext.current
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
 
-    val pickImageLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        imageUri = uri
-    }
+    val authUiState by authViewModel.authUiState.collectAsState()
 
-    val nameState = remember { TextFieldState() }
+    // State variables for user input
     val emailState = remember { TextFieldState() }
     val passwordState = remember { TextFieldState() }
+
+    // LaunchedEffect to handle navigation and toasts based on AuthUiState
+    LaunchedEffect(key1 = authUiState) {
+        when (authUiState) {
+            is AuthUiState.Success -> {
+                // Navigate to the profile setup screen on successful sign-up
+                navController.navigate("profile_setup") {
+                    popUpTo("signup") { inclusive = true }
+                }
+                authViewModel.resetAuthUiState()
+            }
+            is AuthUiState.Error -> {
+                val errorMessage = (authUiState as AuthUiState.Error).message
+                Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                authViewModel.resetAuthUiState()
+            }
+            else -> {}
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -45,37 +54,8 @@ fun SignUpScreen(modifier: Modifier, navController: NavController, authViewModel
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Profile Image Picker
-        Box(
-            modifier = Modifier
-                .size(80.dp)
-                .clip(CircleShape)
-                .clickable { pickImageLauncher.launch("image/*") },
-            contentAlignment = Alignment.Center
-        ) {
-            if (imageUri != null) {
-                Image(
-                    painter = rememberAsyncImagePainter(imageUri),
-                    contentDescription = "Selected profile picture",
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Default profile icon",
-                    tint = Color.Gray,
-                    modifier = Modifier.size(60.dp)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-        Text(text = "Choose a profile picture", style = MaterialTheme.typography.labelMedium)
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        //MyTextField(state = nameState, placeholder = "Full Name")
-        //Spacer(modifier = Modifier.height(10.dp))
+        // We've removed the Profile Image Picker code here.
+        // It's now handled entirely in the ProfileSetupScreen.
 
         MyTextField(state = emailState, placeholder = "Email")
         Spacer(modifier = Modifier.height(10.dp))
@@ -89,8 +69,12 @@ fun SignUpScreen(modifier: Modifier, navController: NavController, authViewModel
         FaceBookButton { /* Facebook signup logic */ }
         Spacer(modifier = Modifier.height(30.dp))
 
-        MyButton(text = "Sign Up") {
-            // Send name, email, password, and imageUri to backend
-        }
+        MyButton(
+            text = "Sign Up",
+            isLoading = authUiState == AuthUiState.Loading,
+            onClick = {
+                authViewModel.signUp(emailState.text, passwordState.text)
+            }
+        )
     }
 }

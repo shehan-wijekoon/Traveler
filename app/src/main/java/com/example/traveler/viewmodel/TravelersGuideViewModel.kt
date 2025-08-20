@@ -20,7 +20,8 @@ data class Reading(
     val altitude: String,
     val pressure: String,
     val temperature: String,
-    val timestamp: String
+    val timestamp: String,
+    val humidity: String
 )
 
 class TravelersGuideViewModel : ViewModel() {
@@ -32,8 +33,7 @@ class TravelersGuideViewModel : ViewModel() {
     private val _temperature = MutableStateFlow("Loading...")
     val temperature: StateFlow<String> = _temperature
 
-    // The image doesn't show humidity data. I'll keep the StateFlow but it will always be "-".
-    private val _humidity = MutableStateFlow("-")
+    private val _humidity = MutableStateFlow("Loading")
     val humidity: StateFlow<String> = _humidity
 
     private val _pressure = MutableStateFlow("Loading...")
@@ -77,6 +77,9 @@ class TravelersGuideViewModel : ViewModel() {
                             val temp = data["temperature_C"]?.toString()?.toFloatOrNull()
                             _temperature.value = if (temp != null) String.format("%.2f", temp) else "-"
 
+                            val humidityValue = data["humidity_percent"]?.toString()?.toFloatOrNull()
+                            _humidity.value = if (humidityValue != null) String.format("%.2f", humidityValue) else "-"
+
                             // NEW: Format the pressure to two decimal places
                             val pressureValue = data["pressure_hPa"]?.toString()?.toFloatOrNull()
                             _pressure.value = if (pressureValue != null) String.format("%.2f", pressureValue) else "-"
@@ -113,7 +116,8 @@ class TravelersGuideViewModel : ViewModel() {
                                 altitude = data["altitude_meters"]?.toString() ?: "-",
                                 pressure = data["pressure_hPa"]?.toString() ?: "-",
                                 temperature = data["temperature_C"]?.toString() ?: "-",
-                                timestamp = data["timestamp"]?.toString() ?: "-"
+                                timestamp = data["timestamp"]?.toString() ?: "-",
+                                humidity = data["humidity_percent"]?.toString() ?: "-"
                             )
                         )
                     }

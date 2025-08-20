@@ -60,11 +60,26 @@ dependencies {
     // Use Firebase BoM to manage versions
     implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
 
-    // Add individual Firebase libraries. The BoM sets the version for you.
+    // Add individual Firebase libraries. The BoM sets the version for you. (IOT)
     implementation("com.google.firebase:firebase-database-ktx")
+
+    // Firebase Authentication for email/password sign-in and Google Sign-In
+    implementation("com.google.firebase:firebase-auth-ktx")
+    
+    // Google Sign-In specific library
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+
+    // Cloud Firestore for the chat part
+    implementation("com.google.firebase:firebase-firestore-ktx")
 
     // Charting library
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+    // ai model integration part
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
+
+    //for data store
+    implementation("com.google.firebase:firebase-storage-ktx")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
