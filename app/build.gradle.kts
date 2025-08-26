@@ -38,6 +38,9 @@ android {
     buildFeatures {
         compose = true
     }
+    aaptOptions {
+        noCompress("tflite")
+    }
 }
 
 dependencies {
@@ -75,9 +78,16 @@ dependencies {
     // Charting library
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
-    // ai model integration part
-    implementation("org.tensorflow:tensorflow-lite:2.16.1")
 
+    // ai model integration part
+    // implementation("org.tensorflow:tensorflow-lite-task-vision:0.4.3")
+    // Add this line to include the TFLite core interpreter
+    implementation("org.tensorflow:tensorflow-lite:2.15.0")
+    // CRITICAL FIX: Add the select-tf-ops library to support custom/newer ops
+    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.15.0")
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.3")
+
+    
     //for data store
     implementation("com.google.firebase:firebase-storage-ktx")
 

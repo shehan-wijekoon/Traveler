@@ -52,12 +52,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    //TravelersGuideScreen()
-                    val navController = rememberNavController()
-                    val authViewModel: AuthViewModel = viewModel()
-                    SignUpScreen(modifier = Modifier.fillMaxSize(),
-                        navController = navController,
-                        authViewModel = authViewModel)
+                    TravelersGuideScreen()
                 }
             }
         }

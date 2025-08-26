@@ -29,14 +29,10 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.data.Entry
-// NEW: Import ContextCompat to use the drawable file
 import androidx.core.content.ContextCompat
-import com.example.traveler.R // NEW: Import your project's resources
+import com.example.traveler.R
 import androidx.compose.ui.unit.sp
-
-//
 import com.github.mikephil.charting.components.YAxis
-import androidx.compose.ui.viewinterop.AndroidView
 import com.github.mikephil.charting.components.MarkerView
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.utils.MPPointF
@@ -49,8 +45,11 @@ fun TravelersGuideScreen(
     travelersGuideViewModel: TravelersGuideViewModel = viewModel()
 ) {
     val context = LocalContext.current
+
+    // THE ONLY CHANGE: Pass the 'context' to the ViewModel's data fetch function.
+    // This allows the ViewModel to access the assets folder and load the AI model.
     LaunchedEffect(key1 = Unit) {
-        travelersGuideViewModel.initiateDataFetch()
+        travelersGuideViewModel.initiateDataFetch(context)
     }
 
     val temperature by travelersGuideViewModel.temperature.collectAsState()
@@ -76,20 +75,16 @@ fun TravelersGuideScreen(
                 }
             )
         },
-        // NEW: Set a light, modern background color for the screen
         containerColor = Color(0xFFF0F5F9)
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(horizontal = 16.dp, vertical = 8.dp) // NEW: Use vertical and horizontal padding for better spacing
+                .padding(horizontal = 16.dp, vertical = 8.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // NEW: Added a dedicated, prominent temperature display for the current reading
             TemperatureDisplay(value = temperature, modifier = Modifier.padding(vertical = 16.dp))
-
-            // NEW: Replaced DataCircle with a more modern DataCard design
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -98,19 +93,15 @@ fun TravelersGuideScreen(
                 DataCard(label = "Pressure", value = pressure)
                 DataCard(label = "Altitude", value = altitude)
             }
-
             Spacer(modifier = Modifier.height(24.dp))
-
-            // NEW: The Card holding the chart is now a rounded rectangle
-            Text("Temperature Graph", style = MaterialTheme.typography.titleLarge) // NEW: Larger title
+            Text("Temperature Graph", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(8.dp))
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(300.dp),
-                shape = MaterialTheme.shapes.medium, // NEW: Use medium rounded corners for the Card
+                shape = MaterialTheme.shapes.medium,
                 colors = CardDefaults.cardColors(containerColor = Color.White)
-
             ) {
                 if (temperatureChartEntries.isNotEmpty()) {
                     TemperatureLineChart(entries = temperatureChartEntries)
@@ -120,11 +111,8 @@ fun TravelersGuideScreen(
                     }
                 }
             }
-
             Spacer(modifier = Modifier.height(24.dp))
-
-            // NEW: The Card for predicted data also uses a modern shape
-            Text("Predicted Data", style = MaterialTheme.typography.titleLarge) // NEW: Larger title
+            Text("Predicted Data", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(8.dp))
             Card(
                 modifier = Modifier
@@ -140,8 +128,6 @@ fun TravelersGuideScreen(
         }
     }
 }
-
-// NEW: A new Composable for a prominent temperature reading
 @Composable
 fun TemperatureDisplay(value: String, modifier: Modifier = Modifier) {
     Card(
@@ -149,14 +135,16 @@ fun TemperatureDisplay(value: String, modifier: Modifier = Modifier) {
             .width(200.dp)
             .height(200.dp),
         shape = CircleShape,
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD)) // NEW: Use a light blue background
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(value, style = MaterialTheme.typography.displayMedium.copy(color = Color(0xFF1976D2))) // NEW: Large, bold text for the value
+            Text(value, style = MaterialTheme.typography.displayMedium.copy(color = Color(0xFF1976D2)))
             Text(
                 "°C",
                 style = MaterialTheme.typography.titleLarge.copy(
@@ -164,12 +152,10 @@ fun TemperatureDisplay(value: String, modifier: Modifier = Modifier) {
                     fontSize = 40.sp
                 )
             )
-            Text("Current", style = MaterialTheme.typography.bodySmall.copy(color = Color.DarkGray)) // NEW: Secondary label
+            Text("Current", style = MaterialTheme.typography.bodySmall.copy(color = Color.DarkGray))
         }
     }
 }
-
-// NEW: A new Composable for other data points, using Card instead of Box
 @Composable
 fun DataCard(label: String, value: String) {
     Card(
@@ -188,14 +174,12 @@ fun DataCard(label: String, value: String) {
         ) {
             Text(label, style = MaterialTheme.typography.bodySmall, color = Color.Gray, maxLines = 1)
             Spacer(modifier = Modifier.height(4.dp))
-            // NEW: Use a Row to align the value and unit side by side
             if (label == "Pressure" || label == "Altitude") {
                 Row(
                     verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(value, style = MaterialTheme.typography.bodyMedium, color = Color.Black, maxLines = 1)
-                    // NEW: Add the unit in a separate Text Composable
                     if (label == "Pressure") {
                         Text("hPa", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                     } else if (label == "Altitude") {
@@ -209,7 +193,6 @@ fun DataCard(label: String, value: String) {
     }
 }
 
-
 @Composable
 fun TemperatureLineChart(entries: List<Entry>) {
     val context = LocalContext.current
@@ -219,14 +202,12 @@ fun TemperatureLineChart(entries: List<Entry>) {
             .padding(16.dp),
         factory = {
             LineChart(it).apply {
-                // NEW: Removed description text for a cleaner look
                 description.isEnabled = false
                 setDrawGridBackground(false)
                 setTouchEnabled(true)
                 isDragEnabled = true
                 setScaleEnabled(true)
                 setPinchZoom(true)
-
                 xAxis.apply {
                     position = XAxis.XAxisPosition.BOTTOM
                     setDrawGridLines(false)
@@ -234,20 +215,15 @@ fun TemperatureLineChart(entries: List<Entry>) {
                     textColor = Color.DarkGray.toArgb()
                     granularity = 1f
                 }
-
                 axisRight.isEnabled = false
                 axisLeft.apply {
                     setDrawGridLines(true)
                     gridColor = Color.LightGray.toArgb()
-                    // NEW: Removed the Y-axis line for a cleaner, floating look
                     setDrawAxisLine(false)
                     textColor = Color.DarkGray.toArgb()
-
-                    // FIX: Set a custom Y-axis range here
-                    axisMinimum = 15f // Set a minimum value (e.g., 15°C)
-                    axisMaximum = 40f // Set a maximum value (e.g., 40°C)
+                    axisMinimum = 15f
+                    axisMaximum = 40f
                 }
-
                 legend.isEnabled = false
             }
         },
@@ -257,10 +233,7 @@ fun TemperatureLineChart(entries: List<Entry>) {
                     setDrawCircles(false)
                     color = Color(0xFF2196F3).toArgb()
                     lineWidth = 3f
-                    // NEW: Changed to 0f to remove data point values
                     valueTextSize = 0f
-
-                    // NEW: Added these lines for a smooth, modern line with a gradient
                     mode = LineDataSet.Mode.CUBIC_BEZIER
                     setDrawFilled(true)
                     fillDrawable = ContextCompat.getDrawable(context, R.drawable.fade_blue)
