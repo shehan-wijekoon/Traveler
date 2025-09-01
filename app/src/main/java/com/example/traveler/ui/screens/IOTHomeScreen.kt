@@ -6,16 +6,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.example.traveler.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(
-    modifier: Modifier = Modifier,
-    navController: NavController,
-    authViewModel: AuthViewModel // Add this parameter
-) {
+fun IOTHomeScreen(onNavigateToTravelerGuide: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -25,7 +19,7 @@ fun HomeScreen(
         containerColor = MaterialTheme.colorScheme.surface
     ) { paddingValues ->
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp),
@@ -38,9 +32,7 @@ fun HomeScreen(
                 modifier = Modifier.padding(bottom = 32.dp)
             )
             Button(
-                // You can add logic here to use authViewModel if needed,
-                // for example, for a logout button
-                onClick = { /* TODO: Add navigation or other logic */ },
+                onClick = onNavigateToTravelerGuide,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Start Your Journey")

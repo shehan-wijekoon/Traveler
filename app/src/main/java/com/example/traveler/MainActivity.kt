@@ -19,42 +19,33 @@ import com.example.traveler.ui.screens.SignUpScreen
 import com.example.traveler.ui.screens.TravelersGuideScreen
 import com.example.traveler.ui.theme.TravelerTheme
 import com.example.traveler.viewmodel.AuthViewModel
+import com.example.traveler.viewmodel.UserProfileViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-
-            /*
-
-            ContentScreen()
-            val navController = rememberNavController()
-            val authViewModel: AuthViewModel = viewModel()
-            SignUpScreen(
-                modifier = Modifier.fillMaxSize(),
-                navController = navController,
-                authViewModel = authViewModel
-            )
-
-            val navController = rememberNavController()
-            val authViewModel: AuthViewModel = viewModel()
-
-            Navigation(
-                modifier = Modifier.fillMaxSize(),
-                navController = navController,
-                authViewModel = authViewModel
-            )
-
-            */
-
             TravelerTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    TravelersGuideScreen()
+                    AppNavigation()
                 }
             }
         }
     }
+}
+
+@Composable
+fun AppNavigation() {
+    val navController = rememberNavController()
+    val authViewModel: AuthViewModel = viewModel()
+    val userProfileViewModel: UserProfileViewModel = viewModel()
+
+    Navigation(
+        navController = navController,
+        authViewModel = authViewModel,
+        userProfileViewModel = userProfileViewModel
+    )
 }
