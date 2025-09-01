@@ -18,8 +18,8 @@ import com.example.traveler.viewmodel.UserProfileViewModel
 
 sealed class Screen(val route: String) {
     object Loading : Screen("loading")
-    object SignUp : Screen("signup")
     object Login : Screen("login")
+    object SignUp : Screen("signup")
     object Home : Screen("home")
     object ProfileSetup : Screen("profile_setup")
 }
@@ -42,13 +42,7 @@ fun Navigation(
             // You'll need to manage the state here and navigate to the next screen when ready
             LoadingScreen(navController = navController)
         }
-        composable(Screen.SignUp.route) {
-            SignUpScreen(
-                modifier = modifier,
-                navController = navController,
-                authViewModel = authViewModel
-            )
-        }
+
         composable(Screen.Login.route) {
             LoginScreen(
                 modifier = modifier,
@@ -56,6 +50,15 @@ fun Navigation(
                 authViewModel = authViewModel
             )
         }
+
+        composable(Screen.SignUp.route) {
+            SignUpScreen(
+                modifier = modifier,
+                navController = navController,
+                authViewModel = authViewModel
+            )
+        }
+
         composable(Screen.Home.route) {
             HomeScreen(
                 modifier = modifier,

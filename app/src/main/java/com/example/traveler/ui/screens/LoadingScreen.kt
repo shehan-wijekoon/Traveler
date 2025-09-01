@@ -9,7 +9,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.traveler.R // R file containing your drawable resource IDs
+import com.example.traveler.R
 import com.example.traveler.controllers.Screen
 import com.example.traveler.ui.theme.TravelerTheme
 import kotlinx.coroutines.delay
@@ -25,7 +25,7 @@ fun LoadingScreen(
 
         // Navigate to the next screen after the delay
         // Example: if (isUserLoggedIn) navController.navigate(Screen.Home.route) else navController.navigate(Screen.SignUp.route)
-        navController.navigate(Screen.SignUp.route) {
+        navController.navigate(Screen.Login.route) {
             // This pops the LoadingScreen from the back stack
             popUpTo(Screen.Loading.route) { inclusive = true }
         }
@@ -37,9 +37,9 @@ fun LoadingScreen(
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.logo), // Replace with your logo resource ID
+            painter = painterResource(id = R.drawable.logo),
             contentDescription = "App Logo",
-            modifier = Modifier.size(500.dp) // Adjust size as needed, a larger size looks better without other elements
+            modifier = Modifier.size(500.dp)
         )
     }
 }

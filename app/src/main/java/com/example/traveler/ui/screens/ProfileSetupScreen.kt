@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.traveler.R
+import com.example.traveler.controllers.Screen
 import com.example.traveler.viewmodel.UserProfileUiState
 import com.example.traveler.viewmodel.UserProfileViewModel
 
@@ -40,27 +41,26 @@ fun ProfileSetupScreen(
     val context = LocalContext.current
     val uiState by userProfileViewModel.uiState.collectAsState()
 
-    // State variables for user input
     var name by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // Launcher for selecting an image from the gallery
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         imageUri = uri
     }
 
-    // Handle UI state changes (success/error)
     LaunchedEffect(uiState) {
         when (uiState) {
             is UserProfileUiState.Success -> {
-                // Navigate away or show success message
                 Toast.makeText(context, "Profile saved successfully!", Toast.LENGTH_SHORT).show()
-                // You can navigate to the main screen here
-                // navController.navigate("home_screen") { ... }
+
+                navController.navigate(Screen.Home.route) {
+                    // This prevents the user from going back to the profile setup screen
+                    popUpTo(Screen.ProfileSetup.route) { inclusive = true }
+                }
                 userProfileViewModel.resetUiState()
             }
             is UserProfileUiState.Error -> {
@@ -93,7 +93,6 @@ fun ProfileSetupScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Profile picture selection
             Box(
                 modifier = Modifier
                     .size(120.dp)
@@ -125,7 +124,6 @@ fun ProfileSetupScreen(
             )
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Text fields for user input
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -153,7 +151,6 @@ fun ProfileSetupScreen(
             )
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Save button
             Button(
                 onClick = {
                     userProfileViewModel.saveUserProfile(name, username, description, imageUri)
