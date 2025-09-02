@@ -36,8 +36,8 @@ fun LoginScreen(modifier: Modifier, navController: NavController, authViewModel:
         when (authUiState) {
             is AuthUiState.Success -> {
                 // Navigate to the correct route
-                navController.navigate(Screen.Home.route) { // ⚠️ CORRECTED ROUTE
-                    popUpTo(Screen.Login.route) { inclusive = true } // ⚠️ CORRECTED POP-UP ROUTE
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(Screen.Login.route) { inclusive = true }
                 }
                 authViewModel.resetAuthUiState()
             }
@@ -83,7 +83,7 @@ fun LoginScreen(modifier: Modifier, navController: NavController, authViewModel:
             }
         )
 
-        TextButton(onClick = { navController.navigate(Screen.SignUp.route)}) { // ⚠️ CORRECTED ROUTE
+        TextButton(onClick = { navController.navigate(Screen.SignUp.route)}) {
             Text(text = "don't have any account, signup here")
         }
     }
