@@ -28,8 +28,9 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.traveler.R
 import com.example.traveler.controllers.Screen
-import com.example.traveler.viewmodel.UserProfileUiState
 import com.example.traveler.viewmodel.UserProfileViewModel
+import com.example.traveler.viewmodel.ProfileUiState // ⚠️ Corrected import
+//import com.example.traveler.viewmodel.UserProfileUiState // ⚠️ Kept for now, but should be removed later
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +40,8 @@ fun ProfileSetupScreen(
     userProfileViewModel: UserProfileViewModel
 ) {
     val context = LocalContext.current
-    val uiState by userProfileViewModel.uiState.collectAsState()
+    // ⚠️ Correctly collect the single state flow from the ViewModel
+    val uiState by userProfileViewModel.profileUiState.collectAsState()
 
     var name by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
@@ -54,17 +56,16 @@ fun ProfileSetupScreen(
 
     LaunchedEffect(uiState) {
         when (uiState) {
-            is UserProfileUiState.Success -> {
+            is ProfileUiState.Success -> {
                 Toast.makeText(context, "Profile saved successfully!", Toast.LENGTH_SHORT).show()
 
                 navController.navigate(Screen.Home.route) {
-                    // This prevents the user from going back to the profile setup screen
                     popUpTo(Screen.ProfileSetup.route) { inclusive = true }
                 }
                 userProfileViewModel.resetUiState()
             }
-            is UserProfileUiState.Error -> {
-                val errorMessage = (uiState as UserProfileUiState.Error).message
+            is ProfileUiState.Error -> {
+                val errorMessage = (uiState as ProfileUiState.Error).message
                 Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
                 userProfileViewModel.resetUiState()
             }
@@ -146,7 +147,9 @@ fun ProfileSetupScreen(
                 value = description,
                 onValueChange = { description = it },
                 label = { Text("Description") },
-                modifier = Modifier.fillMaxWidth().height(120.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp),
                 singleLine = false
             )
             Spacer(modifier = Modifier.height(32.dp))
@@ -158,9 +161,11 @@ fun ProfileSetupScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                enabled = uiState != UserProfileUiState.Loading
+                // ⚠️ Correctly check the state against the new sealed class
+                enabled = uiState !is ProfileUiState.Loading
             ) {
-                if (uiState == UserProfileUiState.Loading) {
+                // ⚠️ Correctly check the state against the new sealed class
+                if (uiState is ProfileUiState.Loading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                 } else {
                     Text(text = "Save Profile", fontSize = 16.sp)

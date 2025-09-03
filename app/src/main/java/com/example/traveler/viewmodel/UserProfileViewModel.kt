@@ -12,12 +12,20 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-sealed class UserProfileUiState {
-    object Idle : UserProfileUiState()
-    object Loading : UserProfileUiState()
-    object Success : UserProfileUiState()
-    data class Error(val message: String) : UserProfileUiState()
+// ⚠️ Corrected sealed class to hold the profile data
+sealed class ProfileUiState {
+    object Loading : ProfileUiState()
+    data class Success(val userProfile: UserProfile) : ProfileUiState()
+    data class Error(val message: String) : ProfileUiState()
+    object Idle : ProfileUiState()
 }
+
+data class UserProfile(
+    val name: String = "",
+    val username: String = "",
+    val description: String = "",
+    val profilePictureUrl: String? = null
+)
 
 class UserProfileViewModel : ViewModel() {
 
@@ -25,8 +33,36 @@ class UserProfileViewModel : ViewModel() {
     private val firestore = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
 
-    private val _uiState = MutableStateFlow<UserProfileUiState>(UserProfileUiState.Idle)
-    val uiState: StateFlow<UserProfileUiState> = _uiState.asStateFlow()
+    // ⚠️ Unified state flow
+    private val _profileUiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Idle)
+    val profileUiState: StateFlow<ProfileUiState> = _profileUiState.asStateFlow()
+
+    init {
+        fetchUserProfile()
+    }
+
+    // ⚠️ Updated fetch function to use the new sealed class
+    fun fetchUserProfile() {
+        val user = auth.currentUser ?: return
+        _profileUiState.value = ProfileUiState.Loading
+        viewModelScope.launch {
+            try {
+                val documentSnapshot = firestore.collection("users").document(user.uid).get().await()
+                if (documentSnapshot.exists()) {
+                    val profileData = documentSnapshot.toObject(UserProfile::class.java)
+                    if (profileData != null) {
+                        _profileUiState.value = ProfileUiState.Success(profileData)
+                    } else {
+                        _profileUiState.value = ProfileUiState.Error("Profile data not found.")
+                    }
+                } else {
+                    _profileUiState.value = ProfileUiState.Error("User profile does not exist.")
+                }
+            } catch (e: Exception) {
+                _profileUiState.value = ProfileUiState.Error(e.message ?: "An unexpected error occurred.")
+            }
+        }
+    }
 
     fun saveUserProfile(
         name: String,
@@ -34,11 +70,14 @@ class UserProfileViewModel : ViewModel() {
         description: String,
         imageUri: Uri?
     ) {
-        _uiState.value = UserProfileUiState.Loading
+        // This function's logic remains the same, but it should be noted
+        // that it should also eventually call fetchUserProfile() to update the state
+        // after a successful save.
+        _profileUiState.value = ProfileUiState.Loading // Changed to use the new state
         viewModelScope.launch {
             val user = auth.currentUser
             if (user == null) {
-                _uiState.value = UserProfileUiState.Error("User not authenticated.")
+                _profileUiState.value = ProfileUiState.Error("User not authenticated.")
                 return@launch
             }
 
@@ -61,20 +100,21 @@ class UserProfileViewModel : ViewModel() {
                     .set(userProfile)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            _uiState.value = UserProfileUiState.Success
+                            // After saving, reload the profile to get the new data
+                            fetchUserProfile()
                         } else {
-                            _uiState.value = UserProfileUiState.Error(
+                            _profileUiState.value = ProfileUiState.Error(
                                 task.exception?.message ?: "Failed to save profile."
                             )
                         }
                     }
             } catch (e: Exception) {
-                _uiState.value = UserProfileUiState.Error(e.message ?: "An unexpected error occurred.")
+                _profileUiState.value = ProfileUiState.Error(e.message ?: "An unexpected error occurred.")
             }
         }
     }
 
     fun resetUiState() {
-        _uiState.value = UserProfileUiState.Idle
+        _profileUiState.value = ProfileUiState.Idle
     }
 }

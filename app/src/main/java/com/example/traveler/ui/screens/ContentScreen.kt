@@ -12,10 +12,14 @@ import com.example.traveler.ui.components.HeaderBar
 import com.example.traveler.ui.components.ImageCard
 import com.example.traveler.ui.components.InfoCard
 import com.example.traveler.R
-
+import androidx.navigation.NavController
 
 @Composable
-fun ContentScreen() {
+fun ContentScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    postId: String
+) {
     val scrollState = rememberScrollState()
     val imageList = listOf(
         painterResource(id = R.drawable.amazon_forest),
@@ -24,11 +28,14 @@ fun ContentScreen() {
     )
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
     ) {
-        HeaderBar(onBackClick = { /* Handle back */ }, onMenuClick = { /* Handle menu */ })
+        HeaderBar(
+            onBackClick = { navController.popBackStack() },
+            onMenuClick = { /* Handle menu */ }
+        )
 
         ImageCard(
             imageResList = imageList,

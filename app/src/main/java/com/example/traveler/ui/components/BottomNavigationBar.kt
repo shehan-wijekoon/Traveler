@@ -8,7 +8,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -30,25 +29,22 @@ sealed class NavItem(val route: String, val icon: @Composable () -> Unit) {
         route = "add", // You can define a new route for adding content
         icon = { Icon(Icons.Default.Add, contentDescription = "Add") }
     )
-    object Profile : NavItem( // ⚠️ Changed from "More" to "Profile"
-        route = Screen.ProfileSetup.route, // ⚠️ Use the correct route for the profile screen
+    object Profile : NavItem(
+        route = "user_profile", // You should create a route for UserProfileScreen
         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") }
-    )
-    object More : NavItem(
-        route = "more", // A generic route for more options
-        icon = { Icon(Icons.Default.MoreVert, contentDescription = "More") }
     )
 }
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
+    // ⚠️ Corrected: The navItems list contains only Home, Add, and Profile
     val navItems = listOf(NavItem.Home, NavItem.Add, NavItem.Profile)
 
     NavigationBar(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
-        containerColor = Color(0xFF556B2F), // Use the dark green color from the image
+        containerColor = Color(0xFF556B2F),
         tonalElevation = 4.dp
     ) {
         navItems.forEach { item ->
@@ -66,7 +62,7 @@ fun BottomNavigationBar(navController: NavController) {
                         modifier = Modifier
                             .size(56.dp)
                             .clip(RoundedCornerShape(50.dp))
-                            .background(if (isSelected) Color.Black else Color.White), // Black for selected, White for others
+                            .background(if (isSelected) Color.Black else Color.White),
                         contentAlignment = Alignment.Center
                     ) {
                         item.icon()
@@ -75,7 +71,7 @@ fun BottomNavigationBar(navController: NavController) {
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Color.White,
                     unselectedIconColor = Color.Black,
-                    indicatorColor = Color.Transparent // Hide the default indicator
+                    indicatorColor = Color.Transparent
                 )
             )
         }

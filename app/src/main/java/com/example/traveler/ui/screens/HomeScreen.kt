@@ -12,6 +12,8 @@ import com.example.traveler.ui.components.MainHeader
 import com.example.traveler.ui.components.ContentCard
 import com.example.traveler.R
 import com.example.traveler.ui.components.BottomNavigationBar
+import com.example.traveler.ui.components.CategoryBar
+import com.example.traveler.controllers.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,6 +22,7 @@ fun HomeScreen(
     navController: NavController,
     authViewModel: AuthViewModel
 ) {
+    val categories = listOf("Jungle", "Beach", "Forest", "Mountain", "Waterfall", "Desert")
     Scaffold(
         topBar = {
             MainHeader(
@@ -47,24 +50,33 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top // Changed to Top to display cards from the top
         ) {
-            Text(
-                text = "Discover your next adventure!",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 32.dp)
+            CategoryBar(
+                categories = categories,
+                onCategorySelected = { selectedCategory ->
+                    // TODO: Implement logic to filter the content based on the selected category
+                    // For example, you can call a ViewModel function here to get new data
+                }
             )
 
-            // ⚠️ Use your custom ContentCard here with specific data
+
             ContentCard(
-                imageResId = R.drawable.jungle_image, // Provide a drawable resource ID
+                imageResId = R.drawable.jungle_image,
                 author = "John Doe",
-                rating = "4.5"
+                rating = "4.5",
+                onClick = {
+                    // Navigate to the content screen and pass a post ID
+                    navController.navigate(Screen.Content.createRoute("post_id_1"))
+                }
             )
 
-            // You can add more ContentCards with different data
             ContentCard(
                 imageResId = R.drawable.jungle_image,
                 author = "Jane Smith",
-                rating = "5.0"
+                rating = "5.0",
+                onClick = {
+                    // Navigate to the content screen and pass a different post ID
+                    navController.navigate(Screen.Content.createRoute("post_id_2"))
+                }
             )
 
         }

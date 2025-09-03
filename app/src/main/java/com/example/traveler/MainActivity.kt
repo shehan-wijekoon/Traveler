@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.example.traveler.controllers.Navigation
 import com.example.traveler.ui.screens.ContentScreen
-import com.example.traveler.ui.screens.DiscoverScreen
 import com.example.traveler.ui.screens.SignUpScreen
 import com.example.traveler.ui.screens.TravelersGuideScreen
 import com.example.traveler.ui.theme.TravelerTheme
