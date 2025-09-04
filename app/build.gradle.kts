@@ -91,6 +91,8 @@ dependencies {
     //for data store
     implementation("com.google.firebase:firebase-storage-ktx")
 
+    implementation("androidx.compose.material:material-icons-extended")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

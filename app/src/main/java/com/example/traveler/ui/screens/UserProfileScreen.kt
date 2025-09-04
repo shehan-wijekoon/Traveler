@@ -29,6 +29,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import com.example.traveler.viewmodel.ProfileUiState
 import coil.compose.rememberAsyncImagePainter
+import com.example.traveler.ui.components.BottomNavigationBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +55,11 @@ fun UserProfileScreen(
                 onBackClick = { navController.popBackStack() },
                 onMenuClick = { /* Handle menu click */ }
             )
+        },
+        bottomBar = {
+            BottomNavigationBar(navController = navController)
         }
+
     ) { paddingValues ->
         // ⚠️ Use the unified state
         when (val state = profileUiState) {

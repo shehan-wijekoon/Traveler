@@ -30,6 +30,7 @@ sealed class Screen(val route: String) {
         fun createRoute(postId: String) = "content/$postId"
     }
     object UserProfile : Screen("user_profile")
+    object UploadPost : Screen("upload_post")
 }
 
 

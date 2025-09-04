@@ -26,7 +26,7 @@ sealed class NavItem(val route: String, val icon: @Composable () -> Unit) {
         icon = { Icon(Icons.Default.Home, contentDescription = "Home") }
     )
     object Add : NavItem(
-        route = "add", // You can define a new route for adding content
+        route = Screen.UploadPost.route,
         icon = { Icon(Icons.Default.Add, contentDescription = "Add") }
     )
     object Profile : NavItem(
