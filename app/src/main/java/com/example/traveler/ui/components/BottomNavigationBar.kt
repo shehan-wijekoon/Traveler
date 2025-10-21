@@ -30,7 +30,7 @@ sealed class NavItem(val route: String, val icon: @Composable () -> Unit) {
         icon = { Icon(Icons.Default.Add, contentDescription = "Add") }
     )
     object Profile : NavItem(
-        route = "user_profile", // You should create a route for UserProfileScreen
+        route = "user_profile",
         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") }
     )
 }

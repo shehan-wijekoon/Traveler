@@ -12,17 +12,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+// ⚠️ REMOVED: import androidx.compose.ui.res.painterResource // No longer using local resources
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import coil.compose.rememberAsyncImagePainter // 🎯 ADDED: For loading images from URL
 
 @Composable
 fun ContentCard(
-    imageResId: Int,
+    // 🎯 CRITICAL CHANGE 1: Use imageUrl (String) instead of imageResId (Int)
+    imageUrl: String,
     author: String,
     rating: String,
     modifier: Modifier = Modifier,
@@ -30,8 +32,8 @@ fun ContentCard(
 ) {
     Card(
         modifier = modifier
+            // ⚠️ Adjusted horizontal padding to 0 here since it's applied in HomeScreen's LazyColumn
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
@@ -42,8 +44,9 @@ fun ContentCard(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
+            // 🎯 CRITICAL CHANGE 2: Use rememberAsyncImagePainter to load image from the URL
             Image(
-                painter = painterResource(id = imageResId),
+                painter = rememberAsyncImagePainter(model = imageUrl),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier

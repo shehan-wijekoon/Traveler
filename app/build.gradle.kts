@@ -93,6 +93,8 @@ dependencies {
 
     implementation("androidx.compose.material:material-icons-extended")
 
+    implementation("io.coil-kt:coil-compose:2.5.0") // Use the latest version
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

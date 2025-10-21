@@ -15,9 +15,14 @@ import com.example.traveler.ui.screens.ProfileSetupScreen
 import com.example.traveler.ui.screens.UserProfileScreen
 import com.example.traveler.viewmodel.AuthViewModel
 import com.example.traveler.viewmodel.UserProfileViewModel
+import com.example.traveler.ui.screens.UploadPostScreen
 import com.example.traveler.ui.screens.ContentScreen
+import com.example.traveler.viewmodel.UploadPostViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.traveler.viewmodel.HomeViewModel
+import com.example.traveler.ui.screens.TravelersGuideScreen
+import com.example.traveler.viewmodel.TravelersGuideViewModel
 
 
 sealed class Screen(val route: String) {
@@ -31,6 +36,7 @@ sealed class Screen(val route: String) {
     }
     object UserProfile : Screen("user_profile")
     object UploadPost : Screen("upload_post")
+    object TravelersGuide : Screen("travelers_guide")
 }
 
 
@@ -41,14 +47,17 @@ fun Navigation(
     authViewModel: AuthViewModel,
     userProfileViewModel: UserProfileViewModel = viewModel()
 ) {
+    // Initialize UploadPostViewModel here
+    val uploadPostViewModel: UploadPostViewModel = viewModel()
+    val homeViewModel: HomeViewModel = viewModel()
+    val travelersGuideViewModel: TravelersGuideViewModel = viewModel()
+
     NavHost(
         navController = navController,
         startDestination = Screen.Loading.route,
         modifier = modifier
     ) {
         composable(Screen.Loading.route) {
-            // Add a composable for the Loading screen
-            // You'll need to manage the state here and navigate to the next screen when ready
             LoadingScreen(navController = navController)
         }
 
@@ -72,10 +81,18 @@ fun Navigation(
             HomeScreen(
                 modifier = modifier,
                 navController = navController,
-                authViewModel = authViewModel
+                authViewModel = authViewModel,
+                homeViewModel = homeViewModel
             )
         }
-        // **ADDED**: Composable for the ProfileSetupScreen
+
+        composable(Screen.TravelersGuide.route) {
+            TravelersGuideScreen(
+                navController = navController,
+                travelersGuideViewModel = travelersGuideViewModel
+            )
+        }
+
         composable(Screen.ProfileSetup.route) {
             ProfileSetupScreen(
                 modifier = modifier,
@@ -83,6 +100,7 @@ fun Navigation(
                 userProfileViewModel = userProfileViewModel
             )
         }
+
         composable(
             route = Screen.Content.route,
             arguments = listOf(navArgument("postId") { type = NavType.StringType })
@@ -100,6 +118,14 @@ fun Navigation(
                 modifier = modifier,
                 navController = navController,
                 userProfileViewModel = userProfileViewModel
+            )
+        }
+
+        composable(Screen.UploadPost.route) {
+            UploadPostScreen(
+                modifier = modifier,
+                navController = navController,
+                uploadPostViewModel = uploadPostViewModel
             )
         }
     }

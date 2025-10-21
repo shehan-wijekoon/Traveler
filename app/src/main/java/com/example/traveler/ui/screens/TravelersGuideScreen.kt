@@ -38,16 +38,20 @@ import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.utils.MPPointF
 import android.widget.TextView
 import android.view.View
+import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TravelersGuideScreen(
+    modifier: Modifier = Modifier,
+    // UPDATE: Added NavController parameter to match the call in Navigation.kt.
+    navController: NavController,
+    // UPDATE: Added TravelersGuideViewModel parameter to match the call in Navigation.kt.
     travelersGuideViewModel: TravelersGuideViewModel = viewModel()
 ) {
     val context = LocalContext.current
 
-    // THE ONLY CHANGE: Pass the 'context' to the ViewModel's data fetch function.
-    // This allows the ViewModel to access the assets folder and load the AI model.
+    // UPDATE: Called the data fetch function in a LaunchedEffect, passing the application context.
     LaunchedEffect(key1 = Unit) {
         travelersGuideViewModel.initiateDataFetch(context)
     }
@@ -64,7 +68,8 @@ fun TravelersGuideScreen(
             TopAppBar(
                 title = { Text("Travelers guide") },
                 navigationIcon = {
-                    IconButton(onClick = { /* Handle back */ }) {
+                    // UPDATE: Implemented navigation logic for the back button.
+                    IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },

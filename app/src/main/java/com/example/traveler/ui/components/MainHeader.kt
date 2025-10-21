@@ -12,13 +12,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.LocationOn
 
 @Composable
 fun MainHeader(
     title: String,
     onSearchClick: () -> Unit,
     onProfileClick: () -> Unit,
-    onNotificationsClick: () -> Unit
+    onNotificationsClick: () -> Unit,
+    onGuideClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -55,6 +57,12 @@ fun MainHeader(
                 Icon(
                     imageVector = Icons.Default.Notifications,
                     contentDescription = "Notifications"
+                )
+            }
+            IconButton(onClick = onGuideClick) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = "Traveler's Guide"
                 )
             }
         }

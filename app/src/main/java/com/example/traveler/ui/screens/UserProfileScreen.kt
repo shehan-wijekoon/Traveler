@@ -9,6 +9,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+// NOTE: LaunchedEffect is already imported in your provided code
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,16 +40,14 @@ fun UserProfileScreen(
     navController: NavController,
     userProfileViewModel: UserProfileViewModel
 ) {
-    // ⚠️ Correctly collect the single state flow
-    val profileUiState by userProfileViewModel.profileUiState.collectAsState()
+    // 🎯 FIX: Call fetchUserProfile every time this composable enters the composition.
+    // This forces the ViewModel to refresh the profile AND the posts list.
+    LaunchedEffect(Unit) {
+        userProfileViewModel.fetchUserProfile()
+    }
 
-    // Mock data for user posts (kept as you requested)
-    val userPosts = listOf(
-        R.drawable.amazon_forest to "1",
-        R.drawable.amazon_forest_2 to "2",
-        R.drawable.amazon_forest_3 to "3",
-        R.drawable.jungle_image to "4",
-    )
+    val profileUiState by userProfileViewModel.profileUiState.collectAsState()
+    val userPosts by userProfileViewModel.userPosts.collectAsState()
 
     Scaffold(
         topBar = {
@@ -59,17 +59,18 @@ fun UserProfileScreen(
         bottomBar = {
             BottomNavigationBar(navController = navController)
         }
-
     ) { paddingValues ->
-        // ⚠️ Use the unified state
+
         when (val state = profileUiState) {
             is ProfileUiState.Loading -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
+
             is ProfileUiState.Success -> {
                 val userProfile = state.userProfile
+
                 Column(
                     modifier = modifier
                         .fillMaxSize()
@@ -77,28 +78,24 @@ fun UserProfileScreen(
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Display the profile picture from the URL, if available
-                    if (userProfile.profilePictureUrl != null) {
-                        Image(
-                            painter = rememberAsyncImagePainter(model = userProfile.profilePictureUrl),
-                            contentDescription = "Profile Picture",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(120.dp)
-                                .clip(CircleShape)
-                                .shadow(4.dp, CircleShape)
-                        )
+                    // --- Profile Picture Section ---
+                    val profilePainter = if (userProfile.profilePictureUrl.isNullOrBlank()) {
+                        // Use a placeholder if URL is null or blank
+                        painterResource(id = R.drawable.ic_profile_placeholder)
                     } else {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_profile_placeholder),
-                            contentDescription = "Profile Picture",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(120.dp)
-                                .clip(CircleShape)
-                                .shadow(4.dp, CircleShape)
-                        )
+                        // Use Coil to load the image from the URL
+                        rememberAsyncImagePainter(model = userProfile.profilePictureUrl)
                     }
+
+                    Image(
+                        painter = profilePainter,
+                        contentDescription = "Profile Picture",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(120.dp)
+                            .clip(CircleShape)
+                            .shadow(4.dp, CircleShape)
+                    )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -116,19 +113,21 @@ fun UserProfileScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
+                    // --- Stats Section ---
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 32.dp),
                         horizontalArrangement = Arrangement.SpaceAround
                     ) {
-                        StatColumn("Posts", "10")
+                        StatColumn("Posts", userPosts.size.toString()) // Dynamically update post count
                         StatColumn("Followers", "567")
                         StatColumn("Following", "124")
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
 
+                    // --- Posts Grid Section ---
                     Text(
                         text = "My Posts",
                         style = MaterialTheme.typography.titleLarge,
@@ -139,34 +138,57 @@ fun UserProfileScreen(
                         textAlign = TextAlign.Start
                     )
 
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 600.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        items(userPosts) { (imageResId, postId) ->
-                            ContentCard(
-                                imageResId = imageResId,
-                                author = "@johndoe123",
-                                rating = "4.5",
-                                onClick = {
-                                    navController.navigate(Screen.Content.createRoute(postId))
-                                }
-                            )
+                    if (userPosts.isEmpty()) {
+                        Text(
+                            text = "No posts yet. Time to explore!",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    } else {
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(2),
+                            // Set a reasonable max height for the grid to avoid parent scroll issues
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 1.dp, max = 600.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            items(userPosts) { post ->
+                                ContentCard(
+                                    imageUrl = post.imageUrl,
+                                    // You might want to display username here instead of authorId
+                                    // If your Post model doesn't include username, you'll see the UID
+                                    author = post.authorId,
+                                    rating = post.rating.toString(),
+                                    onClick = {
+                                        navController.navigate(Screen.Content.createRoute("post_id_placeholder"))
+                                    }
+                                )
+                            }
                         }
                     }
                 }
             }
+
+            // --- Error State: Display error message ---
             is ProfileUiState.Error -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = state.message, color = MaterialTheme.colorScheme.error)
+                    Text(
+                        text = state.message,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(32.dp)
+                    )
                 }
             }
+
+            // --- Idle State: Display placeholder or initial loading hint ---
             is ProfileUiState.Idle -> {
-                // Display nothing or a placeholder while waiting
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = "Awaiting profile data...", color = MaterialTheme.colorScheme.onBackground)
+                }
             }
         }
     }

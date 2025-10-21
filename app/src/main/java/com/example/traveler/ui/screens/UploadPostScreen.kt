@@ -2,8 +2,8 @@ package com.example.traveler.ui.screens
 
 import android.net.Uri
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+// ⚠️ REMOVED: import androidx.activity.compose.rememberLauncherForActivityResult // Not needed
+// ⚠️ REMOVED: import androidx.activity.result.contract.ActivityResultContracts // Not needed
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -41,14 +41,11 @@ fun UploadPostScreen(
     val context = LocalContext.current
     val uiState by uploadPostViewModel.uiState.collectAsState()
 
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    // 🎯 CHANGE 1: Switched imageUri (Uri?) to imageUrl (String)
+    var imageUrl by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
-    val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        imageUri = uri
-    }
+    // ⚠️ REMOVED: imagePickerLauncher definition
 
     // Observe the UI state for feedback and navigation
     LaunchedEffect(uiState) {
@@ -56,6 +53,7 @@ fun UploadPostScreen(
             is UploadPostUiState.Success -> {
                 Toast.makeText(context, "Post uploaded successfully!", Toast.LENGTH_SHORT).show()
                 navController.navigate(Screen.Home.route) {
+                    // This prevents navigating back to the incomplete post screen
                     popUpTo(Screen.Home.route) { inclusive = true }
                 }
                 uploadPostViewModel.resetUiState()
@@ -91,20 +89,20 @@ fun UploadPostScreen(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            // Image selection area
+            // 🎯 CHANGE 2: Image preview now loads from the imageUrl state
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color.LightGray)
-                    .border(2.dp, Color.DarkGray, RoundedCornerShape(16.dp))
-                    .clickable { imagePickerLauncher.launch("image/*") },
+                    .border(2.dp, Color.DarkGray, RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                if (imageUri != null) {
+                // Load image preview only if a non-blank URL is provided
+                if (imageUrl.isNotBlank()) {
                     Image(
-                        painter = rememberAsyncImagePainter(model = imageUri),
+                        painter = rememberAsyncImagePainter(model = imageUrl),
                         contentDescription = "Selected image preview",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
@@ -121,7 +119,7 @@ fun UploadPostScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Tap to select an image",
+                            text = "Paste a public image URL below",
                             fontSize = 16.sp,
                             color = Color.DarkGray
                         )
@@ -131,7 +129,18 @@ fun UploadPostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Description input field
+            // 🎯 CHANGE 3: New input field for the Image URL
+            OutlinedTextField(
+                value = imageUrl,
+                onValueChange = { imageUrl = it },
+                label = { Text("Image URL") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Description input field (remains the same)
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
@@ -147,16 +156,17 @@ fun UploadPostScreen(
             // Upload button
             Button(
                 onClick = {
-                    if (imageUri != null && description.isNotBlank()) {
-                        uploadPostViewModel.uploadPost(imageUri!!, description)
+                    // 🎯 CHANGE 4: Call uploadPost with the imageUrl string
+                    if (imageUrl.isNotBlank() && description.isNotBlank()) {
+                        uploadPostViewModel.uploadPost(imageUrl, description)
                     } else {
-                        Toast.makeText(context, "Please select an image and add a description.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Please enter a valid URL and add a description.", Toast.LENGTH_SHORT).show()
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                enabled = uiState !is UploadPostUiState.Loading && imageUri != null && description.isNotBlank()
+                enabled = uiState !is UploadPostUiState.Loading && imageUrl.isNotBlank() && description.isNotBlank()
             ) {
                 if (uiState is UploadPostUiState.Loading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))

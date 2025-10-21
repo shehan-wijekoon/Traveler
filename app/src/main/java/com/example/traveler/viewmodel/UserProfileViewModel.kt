@@ -1,18 +1,17 @@
 package com.example.traveler.viewmodel
 
-import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-// ⚠️ Corrected sealed class to hold the profile data
 sealed class ProfileUiState {
     object Loading : ProfileUiState()
     data class Success(val userProfile: UserProfile) : ProfileUiState()
@@ -27,21 +26,56 @@ data class UserProfile(
     val profilePictureUrl: String? = null
 )
 
+// 🎯 ADDED: Data model for a user's post (ensure this matches your Firestore 'posts' collection fields)
+data class Post(
+    // Firestore Document ID is not stored here, but should be handled in the calling function
+    val authorId: String = "",
+    val imageUrl: String = "",
+    val rating: Double = 0.0, // Assuming rating is a Double
+    val timestamp: Long = 0L // Used for ordering
+    // Add other fields you need like title, description, etc.
+)
+
 class UserProfileViewModel : ViewModel() {
 
-    private val auth = FirebaseAuth.getInstance()
+    // These fields are already defined, keeping them as they are
+    val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
-    private val storage = FirebaseStorage.getInstance()
 
-    // ⚠️ Unified state flow
     private val _profileUiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Idle)
     val profileUiState: StateFlow<ProfileUiState> = _profileUiState.asStateFlow()
+
+    // 🎯 NEW: State to hold the list of posts for the current user
+    private val _userPosts = MutableStateFlow<List<Post>>(emptyList())
+    val userPosts: StateFlow<List<Post>> = _userPosts.asStateFlow()
+
 
     init {
         fetchUserProfile()
     }
 
-    // ⚠️ Updated fetch function to use the new sealed class
+    // 🎯 NEW: Function to fetch posts by the current user
+    fun fetchUserPosts(userId: String) {
+        if (userId.isBlank()) return // Safety check
+        viewModelScope.launch {
+            try {
+                val snapshot = firestore.collection("posts")
+                    .whereEqualTo("authorId", userId)
+                    .orderBy("timestamp", Query.Direction.DESCENDING) // Order by newest first
+                    .get()
+                    .await()
+
+                val posts = snapshot.toObjects(Post::class.java)
+                _userPosts.value = posts
+
+            } catch (e: Exception) {
+                Log.e("UserProfileViewModel", "Error fetching user posts: ${e.message}", e)
+                _userPosts.value = emptyList()
+            }
+        }
+    }
+
+
     fun fetchUserProfile() {
         val user = auth.currentUser ?: return
         _profileUiState.value = ProfileUiState.Loading
@@ -52,6 +86,10 @@ class UserProfileViewModel : ViewModel() {
                     val profileData = documentSnapshot.toObject(UserProfile::class.java)
                     if (profileData != null) {
                         _profileUiState.value = ProfileUiState.Success(profileData)
+
+                        // 🎯 CRITICAL: Fetch posts immediately after profile loads successfully
+                        fetchUserPosts(user.uid)
+
                     } else {
                         _profileUiState.value = ProfileUiState.Error("Profile data not found.")
                     }
@@ -64,16 +102,15 @@ class UserProfileViewModel : ViewModel() {
         }
     }
 
+    // ... (saveUserProfile and resetUiState remain the same) ...
+
     fun saveUserProfile(
         name: String,
         username: String,
         description: String,
-        imageUri: Uri?
+        imageUrl: String?
     ) {
-        // This function's logic remains the same, but it should be noted
-        // that it should also eventually call fetchUserProfile() to update the state
-        // after a successful save.
-        _profileUiState.value = ProfileUiState.Loading // Changed to use the new state
+        _profileUiState.value = ProfileUiState.Loading
         viewModelScope.launch {
             val user = auth.currentUser
             if (user == null) {
@@ -82,37 +119,27 @@ class UserProfileViewModel : ViewModel() {
             }
 
             try {
-                var imageUrl: String? = null
-                if (imageUri != null) {
-                    val imageRef = storage.reference.child("profile_pictures/${user.uid}")
-                    imageRef.putFile(imageUri).await()
-                    imageUrl = imageRef.downloadUrl.await().toString()
-                }
+                val finalImageUrl = if (imageUrl.isNullOrBlank()) null else imageUrl
 
                 val userProfile = hashMapOf(
                     "name" to name,
                     "username" to username,
                     "description" to description,
-                    "profilePictureUrl" to imageUrl
+                    "profilePictureUrl" to finalImageUrl
                 )
 
                 firestore.collection("users").document(user.uid)
                     .set(userProfile)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            // After saving, reload the profile to get the new data
-                            fetchUserProfile()
-                        } else {
-                            _profileUiState.value = ProfileUiState.Error(
-                                task.exception?.message ?: "Failed to save profile."
-                            )
-                        }
-                    }
+                    .await()
+
+                fetchUserProfile()
+
             } catch (e: Exception) {
-                _profileUiState.value = ProfileUiState.Error(e.message ?: "An unexpected error occurred.")
+                _profileUiState.value = ProfileUiState.Error(e.message ?: "Failed to save profile.")
             }
         }
     }
+
 
     fun resetUiState() {
         _profileUiState.value = ProfileUiState.Idle

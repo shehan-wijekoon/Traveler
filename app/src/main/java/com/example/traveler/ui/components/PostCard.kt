@@ -38,11 +38,11 @@ fun PostCard(
             .padding(bottom = 16.dp)
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Post content (Image/Video)
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(450.dp) // Adjust height as needed for full-width content
+                .height(450.dp)
         ) {
             Image(
                 painter = rememberAsyncImagePainter(model = post.imageUrl),
@@ -51,7 +51,7 @@ fun PostCard(
                 modifier = Modifier.fillMaxSize()
             )
 
-            // User profile info overlay
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -59,7 +59,7 @@ fun PostCard(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Profile Picture
+
                 if (userProfile.profilePictureUrl != null) {
                     Image(
                         painter = rememberAsyncImagePainter(model = userProfile.profilePictureUrl),
@@ -71,7 +71,7 @@ fun PostCard(
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                // Username
+
                 Text(
                     text = "@${userProfile.username}",
                     style = MaterialTheme.typography.bodyLarge,
