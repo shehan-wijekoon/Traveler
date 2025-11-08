@@ -40,11 +40,11 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel()
-    val userProfileViewModel: UserProfileViewModel = viewModel()
+    //val userProfileViewModel: UserProfileViewModel = viewModel()
 
     Navigation(
         navController = navController,
         authViewModel = authViewModel,
-        userProfileViewModel = userProfileViewModel
+        //userProfileViewModel = userProfileViewModel
     )
 }

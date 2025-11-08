@@ -6,33 +6,27 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-// ⚠️ REMOVED: import androidx.compose.ui.res.painterResource // No longer using local resources
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import coil.compose.rememberAsyncImagePainter // 🎯 ADDED: For loading images from URL
+import coil.compose.rememberAsyncImagePainter
 
 @Composable
 fun ContentCard(
-    // 🎯 CRITICAL CHANGE 1: Use imageUrl (String) instead of imageResId (Int)
     imageUrl: String,
     author: String,
-    rating: String,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     Card(
         modifier = modifier
-            // ⚠️ Adjusted horizontal padding to 0 here since it's applied in HomeScreen's LazyColumn
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
@@ -44,7 +38,6 @@ fun ContentCard(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // 🎯 CRITICAL CHANGE 2: Use rememberAsyncImagePainter to load image from the URL
             Image(
                 painter = rememberAsyncImagePainter(model = imageUrl),
                 contentDescription = null,
@@ -62,6 +55,7 @@ fun ContentCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
 
                     Icon(
@@ -75,21 +69,6 @@ fun ContentCard(
                         text = author,
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = "Rating star",
-                        tint = Color(0xFFFFC107),
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = rating,
-                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }

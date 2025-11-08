@@ -29,14 +29,14 @@ fun MainHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Title on the left side
+
         Text(
-            text = title, // The title is now a parameter
+            text = title,
             style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
             fontSize = 32.sp
         )
 
-        // Icons on the right side
+
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically

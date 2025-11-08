@@ -5,10 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.ChatBubble
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,15 +17,11 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.traveler.model.Post
 import com.example.traveler.model.UserProfile
-import androidx.compose.material.icons.filled.Star
 
 @Composable
 fun PostCard(
     post: Post,
     userProfile: UserProfile,
-    onLikeClick: () -> Unit,
-    onCommentClick: () -> Unit,
-    onShareClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -82,69 +74,29 @@ fun PostCard(
             }
         }
 
-        // Action buttons and description
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Like, Comment, Share buttons
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onLikeClick) {
-                        Icon(
-                            imageVector = Icons.Default.Favorite,
-                            contentDescription = "Like",
-                            tint = Color.Gray
-                        )
-                    }
-                    Text(text = "${post.likes}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            Text(
+                text = post.title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
 
-                    Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-                    IconButton(onClick = onCommentClick) {
-                        Icon(
-                            imageVector = Icons.Default.ChatBubble,
-                            contentDescription = "Comment",
-                            tint = Color.Gray
-                        )
-                    }
-                    Text(text = "${post.comments}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    IconButton(onClick = onShareClick) {
-                        Icon(
-                            imageVector = Icons.Default.Share,
-                            contentDescription = "Share",
-                            tint = Color.Gray
-                        )
-                    }
-                }
-                // Rating
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = "Rating star",
-                        tint = Color(0xFFFFC107),
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "%.1f".format(post.rating),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            Text(
+                text = "#${post.category}",
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Description
             Text(
                 text = post.description,
                 style = MaterialTheme.typography.bodyMedium,

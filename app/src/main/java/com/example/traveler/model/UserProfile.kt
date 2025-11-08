@@ -1,8 +1,12 @@
 package com.example.traveler.model
 
 data class UserProfile(
-    val name: String = "",
     val username: String = "",
+    val title: String = "",
     val description: String = "",
-    val profilePictureUrl: String? = null
+    val profilePictureUrl: String = "",
+    val googleMapLink: String = "",
+    val rulesGuidance: String = ""
+
+
 )

@@ -18,7 +18,7 @@ fun CategoryBar(
     categories: List<String>,
     onCategorySelected: (String) -> Unit
 ) {
-    // Keep track of the currently selected category
+
     var selectedCategory by remember { mutableStateOf(categories.firstOrNull() ?: "") }
 
     LazyRow(
@@ -48,7 +48,7 @@ fun CategoryBar(
                     Divider(
                         modifier = Modifier.width(35.dp),
                         thickness = 2.dp,
-                        color = Color.Black // Match the underline from the image
+                        color = Color.Black
                     )
                 }
             }

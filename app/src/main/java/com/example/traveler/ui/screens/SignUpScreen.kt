@@ -24,15 +24,14 @@ fun SignUpScreen(modifier: Modifier, navController: NavController, authViewModel
 
     val authUiState by authViewModel.authUiState.collectAsState()
 
-    // State variables for user input
     val emailState = remember { TextFieldState() }
     val passwordState = remember { TextFieldState() }
 
-    // LaunchedEffect to handle navigation and toasts based on AuthUiState
+
     LaunchedEffect(key1 = authUiState) {
         when (authUiState) {
             is AuthUiState.Success -> {
-                // Navigate to the profile setup screen on successful sign-up
+
                 navController.navigate("profile_setup") {
                     popUpTo("signup") { inclusive = true }
                 }
@@ -54,8 +53,6 @@ fun SignUpScreen(modifier: Modifier, navController: NavController, authViewModel
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // We've removed the Profile Image Picker code here.
-        // It's now handled entirely in the ProfileSetupScreen.
 
         MyTextField(state = emailState, placeholder = "Email")
         Spacer(modifier = Modifier.height(10.dp))

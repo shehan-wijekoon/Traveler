@@ -1,5 +1,7 @@
 package com.example.traveler.ui.screens
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -9,13 +11,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-// NOTE: LaunchedEffect is already imported in your provided code
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -32,6 +34,8 @@ import androidx.compose.foundation.lazy.grid.items
 import com.example.traveler.viewmodel.ProfileUiState
 import coil.compose.rememberAsyncImagePainter
 import com.example.traveler.ui.components.BottomNavigationBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,8 +44,8 @@ fun UserProfileScreen(
     navController: NavController,
     userProfileViewModel: UserProfileViewModel
 ) {
-    // 🎯 FIX: Call fetchUserProfile every time this composable enters the composition.
-    // This forces the ViewModel to refresh the profile AND the posts list.
+    val context = LocalContext.current
+
     LaunchedEffect(Unit) {
         userProfileViewModel.fetchUserProfile()
     }
@@ -53,7 +57,7 @@ fun UserProfileScreen(
         topBar = {
             HeaderBar(
                 onBackClick = { navController.popBackStack() },
-                onMenuClick = { /* Handle menu click */ }
+                onMenuClick = { }
             )
         },
         bottomBar = {
@@ -78,12 +82,9 @@ fun UserProfileScreen(
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // --- Profile Picture Section ---
                     val profilePainter = if (userProfile.profilePictureUrl.isNullOrBlank()) {
-                        // Use a placeholder if URL is null or blank
                         painterResource(id = R.drawable.ic_profile_placeholder)
                     } else {
-                        // Use Coil to load the image from the URL
                         rememberAsyncImagePainter(model = userProfile.profilePictureUrl)
                     }
 
@@ -100,11 +101,12 @@ fun UserProfileScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = userProfile.name,
+                        text = userProfile.title,
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
+
                     Text(
                         text = "@${userProfile.username}",
                         style = MaterialTheme.typography.bodyLarge,
@@ -113,21 +115,61 @@ fun UserProfileScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // --- Stats Section ---
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 32.dp),
-                        horizontalArrangement = Arrangement.SpaceAround
-                    ) {
-                        StatColumn("Posts", userPosts.size.toString()) // Dynamically update post count
-                        StatColumn("Followers", "567")
-                        StatColumn("Following", "124")
+                    if (userProfile.description.isNotBlank()) {
+                        Text(
+                            text = userProfile.description,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    // View on Map Button
+                    if (userProfile.googleMapLink.isNotBlank()) {
+                        Button(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(userProfile.googleMapLink))
+                                if (intent.resolveActivity(context.packageManager) != null) {
+                                    context.startActivity(intent)
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 32.dp, vertical = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = "View Location on Map",
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text("View Location on Map")
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
 
-                    // --- Posts Grid Section ---
+                    if (userProfile.rulesGuidance.isNotBlank()) {
+                        Text(
+                            text = "Rules & Guidance",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp)
+                        )
+                        Text(
+                            text = userProfile.rulesGuidance,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+
                     Text(
                         text = "My Posts",
                         style = MaterialTheme.typography.titleLarge,
@@ -147,7 +189,6 @@ fun UserProfileScreen(
                     } else {
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(2),
-                            // Set a reasonable max height for the grid to avoid parent scroll issues
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .heightIn(min = 1.dp, max = 600.dp),
@@ -158,12 +199,9 @@ fun UserProfileScreen(
                             items(userPosts) { post ->
                                 ContentCard(
                                     imageUrl = post.imageUrl,
-                                    // You might want to display username here instead of authorId
-                                    // If your Post model doesn't include username, you'll see the UID
-                                    author = post.authorId,
-                                    rating = post.rating.toString(),
+                                    author = post.title,
                                     onClick = {
-                                        navController.navigate(Screen.Content.createRoute("post_id_placeholder"))
+                                        navController.navigate(Screen.Content.createRoute(post.id))
                                     }
                                 )
                             }
@@ -172,7 +210,6 @@ fun UserProfileScreen(
                 }
             }
 
-            // --- Error State: Display error message ---
             is ProfileUiState.Error -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
@@ -184,28 +221,11 @@ fun UserProfileScreen(
                 }
             }
 
-            // --- Idle State: Display placeholder or initial loading hint ---
             is ProfileUiState.Idle -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(text = "Awaiting profile data...", color = MaterialTheme.colorScheme.onBackground)
                 }
             }
         }
-    }
-}
-
-@Composable
-fun StatColumn(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }

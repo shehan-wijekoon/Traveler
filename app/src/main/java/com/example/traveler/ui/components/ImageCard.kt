@@ -1,7 +1,6 @@
 package com.example.traveler.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -15,26 +14,43 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import androidx.compose.foundation.background
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ImageCard(
-    imageResList: List<Painter>,
+    imageUrls: List<String>,
     title: String,
     location: String
 ) {
-    val pagerState = rememberPagerState(pageCount = { imageResList.size })
+
+    val safeImageUrls = imageUrls.filter { it.isNotEmpty() }
+    val pagerState = rememberPagerState(pageCount = { safeImageUrls.size })
+
+    if (safeImageUrls.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(430.dp)
+                .clip(RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp))
+                .background(Color.LightGray),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("No Image Available", color = Color.Gray)
+        }
+        return
+    }
 
     Box {
         HorizontalPager(state = pagerState) { page ->
-            Image(
-                painter = imageResList[page],
-                contentDescription = null,
+            AsyncImage(
+                model = safeImageUrls[page],
+                contentDescription = "$title image $page",
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(430.dp)

@@ -1,7 +1,5 @@
 package com.example.traveler.ui.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -27,31 +25,21 @@ import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.data.Entry
 import androidx.core.content.ContextCompat
 import com.example.traveler.R
 import androidx.compose.ui.unit.sp
-import com.github.mikephil.charting.components.YAxis
-import com.github.mikephil.charting.components.MarkerView
-import com.github.mikephil.charting.highlight.Highlight
-import com.github.mikephil.charting.utils.MPPointF
-import android.widget.TextView
-import android.view.View
 import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TravelersGuideScreen(
     modifier: Modifier = Modifier,
-    // UPDATE: Added NavController parameter to match the call in Navigation.kt.
     navController: NavController,
-    // UPDATE: Added TravelersGuideViewModel parameter to match the call in Navigation.kt.
     travelersGuideViewModel: TravelersGuideViewModel = viewModel()
 ) {
     val context = LocalContext.current
 
-    // UPDATE: Called the data fetch function in a LaunchedEffect, passing the application context.
     LaunchedEffect(key1 = Unit) {
         travelersGuideViewModel.initiateDataFetch(context)
     }
@@ -68,7 +56,6 @@ fun TravelersGuideScreen(
             TopAppBar(
                 title = { Text("Travelers guide") },
                 navigationIcon = {
-                    // UPDATE: Implemented navigation logic for the back button.
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
                     }

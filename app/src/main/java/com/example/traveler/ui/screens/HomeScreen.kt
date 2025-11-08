@@ -27,20 +27,17 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     authViewModel: AuthViewModel,
-    // 🎯 CRITICAL FIX: Added the HomeViewModel parameter
     homeViewModel: HomeViewModel
 ) {
-    // 🎯 OBSERVE: Collect the state of the posts from the ViewModel
     val uiState by homeViewModel.uiState.collectAsState()
 
-    val categories = listOf("Jungle", "Beach", "Forest", "Mountain", "Waterfall", "Desert")
+    val categories = listOf("All", "Jungle", "Beach", "Forest", "Mountain", "Waterfall", "Desert")
 
     Scaffold(
         topBar = {
             MainHeader(
                 title = "Home",
                 onSearchClick = { /* TODO: Handle search click */ },
-                // You may want to navigate to Screen.UserProfile.route here instead of profile_setup
                 onProfileClick = { navController.navigate(Screen.UserProfile.route) },
                 onNotificationsClick = {
                     // TODO: Handle notifications click
@@ -66,22 +63,20 @@ fun HomeScreen(
             CategoryBar(
                 categories = categories,
                 onCategorySelected = { selectedCategory ->
-                    // TODO: Implement filtering/re-fetching logic
+                    val filterValue = if (selectedCategory == "All") null else selectedCategory
+                    homeViewModel.selectCategory(filterValue)
                 }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 🎯 NEW: Display Posts based on the UI State
             when (uiState) {
                 is HomeUiState.Loading -> {
-                    // Show a spinner while data is being fetched
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
                 }
                 is HomeUiState.Error -> {
-                    // Show an error message
                     Text("Error loading feed: ${(uiState as HomeUiState.Error).message}")
                 }
                 is HomeUiState.Success -> {
@@ -90,22 +85,16 @@ fun HomeScreen(
                     if (posts.isEmpty()) {
                         Text("No posts yet. Be the first to upload one!")
                     } else {
-                        // 🎯 Use LazyColumn to efficiently list the fetched posts
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             items(posts) { post ->
-                                // ⚠️ IMPORTANT: You need to ensure your ContentCard can handle the 'post' object
-                                // which contains imageUrl (String), not imageResId (Int).
                                 ContentCard(
-                                    imageUrl = post.imageUrl, // Pass the URL string
-                                    author = post.authorId, // Display author ID (can be improved later)
-                                    rating = post.rating.toString(), // Convert rating to string
+                                    imageUrl = post.imageUrl,
+                                    author = post.title,
                                     onClick = {
-                                        // Navigate to the content screen and pass a post ID (you need a post ID field in your Post model)
-                                        // For now, let's use a dummy ID until you update the Post model to include one.
-                                        navController.navigate(Screen.Content.createRoute("dummy_post_id"))
+                                        navController.navigate(Screen.Content.createRoute(post.id))
                                     }
                                 )
                             }

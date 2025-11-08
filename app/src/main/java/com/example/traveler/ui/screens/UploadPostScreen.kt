@@ -1,17 +1,17 @@
 package com.example.traveler.ui.screens
 
-import android.net.Uri
 import android.widget.Toast
-// ⚠️ REMOVED: import androidx.activity.compose.rememberLauncherForActivityResult // Not needed
-// ⚠️ REMOVED: import androidx.activity.result.contract.ActivityResultContracts // Not needed
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,7 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -41,19 +40,19 @@ fun UploadPostScreen(
     val context = LocalContext.current
     val uiState by uploadPostViewModel.uiState.collectAsState()
 
-    // 🎯 CHANGE 1: Switched imageUri (Uri?) to imageUrl (String)
     var imageUrl by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var title by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf("Select Category") }
+    var expanded by remember { mutableStateOf(false) }
 
-    // ⚠️ REMOVED: imagePickerLauncher definition
+    val categories = listOf("Jungle", "Beach", "Forest", "Mountain", "Waterfall")
 
-    // Observe the UI state for feedback and navigation
     LaunchedEffect(uiState) {
         when (uiState) {
             is UploadPostUiState.Success -> {
                 Toast.makeText(context, "Post uploaded successfully!", Toast.LENGTH_SHORT).show()
                 navController.navigate(Screen.Home.route) {
-                    // This prevents navigating back to the incomplete post screen
                     popUpTo(Screen.Home.route) { inclusive = true }
                 }
                 uploadPostViewModel.resetUiState()
@@ -71,7 +70,7 @@ fun UploadPostScreen(
         topBar = {
             HeaderBar(
                 onBackClick = { navController.popBackStack() },
-                onMenuClick = { /* Do nothing for this screen */ }
+                onMenuClick = { }
             )
         }
     ) { paddingValues ->
@@ -79,7 +78,8 @@ fun UploadPostScreen(
             modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -89,7 +89,6 @@ fun UploadPostScreen(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            // 🎯 CHANGE 2: Image preview now loads from the imageUrl state
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -99,7 +98,6 @@ fun UploadPostScreen(
                     .border(2.dp, Color.DarkGray, RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                // Load image preview only if a non-blank URL is provided
                 if (imageUrl.isNotBlank()) {
                     Image(
                         painter = rememberAsyncImagePainter(model = imageUrl),
@@ -129,7 +127,18 @@ fun UploadPostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 🎯 CHANGE 3: New input field for the Image URL
+            // New: Title Input Field
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("Post Title") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+
             OutlinedTextField(
                 value = imageUrl,
                 onValueChange = { imageUrl = it },
@@ -140,7 +149,49 @@ fun UploadPostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Description input field (remains the same)
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentSize(Alignment.TopStart)
+            ) {
+                OutlinedTextField(
+                    value = selectedCategory,
+                    onValueChange = { },
+                    label = { Text("Category") },
+                    readOnly = true,
+                    trailingIcon = {
+                        Icon(
+                            Icons.Default.ArrowDropDown,
+                            contentDescription = "Dropdown Arrow",
+                            Modifier.clickable { expanded = !expanded }
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { expanded = !expanded }
+                )
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.fillMaxWidth(0.9f)
+                ) {
+                    categories.forEach { category ->
+                        DropdownMenuItem(
+                            text = { Text(category) },
+                            onClick = {
+                                selectedCategory = category
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
@@ -153,20 +204,21 @@ fun UploadPostScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Upload button
+            val isFormValid = imageUrl.isNotBlank() && description.isNotBlank() && title.isNotBlank() && selectedCategory != "Select Category"
+
+
             Button(
                 onClick = {
-                    // 🎯 CHANGE 4: Call uploadPost with the imageUrl string
-                    if (imageUrl.isNotBlank() && description.isNotBlank()) {
-                        uploadPostViewModel.uploadPost(imageUrl, description)
+                    if (isFormValid) {
+                        uploadPostViewModel.uploadPost(imageUrl, description, title, selectedCategory)
                     } else {
-                        Toast.makeText(context, "Please enter a valid URL and add a description.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Please complete all fields (URL, Title, Category, and Description).", Toast.LENGTH_LONG).show()
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                enabled = uiState !is UploadPostUiState.Loading && imageUrl.isNotBlank() && description.isNotBlank()
+                enabled = uiState !is UploadPostUiState.Loading && isFormValid
             ) {
                 if (uiState is UploadPostUiState.Loading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
@@ -174,6 +226,7 @@ fun UploadPostScreen(
                     Text(text = "Upload Post", fontSize = 16.sp)
                 }
             }
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

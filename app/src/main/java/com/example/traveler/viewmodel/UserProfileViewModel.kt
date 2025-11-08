@@ -20,32 +20,34 @@ sealed class ProfileUiState {
 }
 
 data class UserProfile(
-    val name: String = "",
     val username: String = "",
     val description: String = "",
-    val profilePictureUrl: String? = null
+    val title: String = "",
+    val profilePictureUrl: String = "",
+    val googleMapLink: String = "",
+    val rulesGuidance: String = ""
 )
 
-// 🎯 ADDED: Data model for a user's post (ensure this matches your Firestore 'posts' collection fields)
 data class Post(
-    // Firestore Document ID is not stored here, but should be handled in the calling function
+    val id: String = "",
     val authorId: String = "",
     val imageUrl: String = "",
-    val rating: Double = 0.0, // Assuming rating is a Double
-    val timestamp: Long = 0L // Used for ordering
-    // Add other fields you need like title, description, etc.
+    val rating: Double = 0.0,
+    val timestamp: Long = 0L,
+    val title: String = ""
 )
 
 class UserProfileViewModel : ViewModel() {
 
-    // These fields are already defined, keeping them as they are
-    val auth = FirebaseAuth.getInstance()
+    private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
 
     private val _profileUiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Idle)
     val profileUiState: StateFlow<ProfileUiState> = _profileUiState.asStateFlow()
 
-    // 🎯 NEW: State to hold the list of posts for the current user
+    private val _isSaveCompleted = MutableStateFlow(false)
+    val isSaveCompleted: StateFlow<Boolean> = _isSaveCompleted.asStateFlow()
+
     private val _userPosts = MutableStateFlow<List<Post>>(emptyList())
     val userPosts: StateFlow<List<Post>> = _userPosts.asStateFlow()
 
@@ -54,18 +56,21 @@ class UserProfileViewModel : ViewModel() {
         fetchUserProfile()
     }
 
-    // 🎯 NEW: Function to fetch posts by the current user
     fun fetchUserPosts(userId: String) {
-        if (userId.isBlank()) return // Safety check
+        if (userId.isBlank()) return
         viewModelScope.launch {
             try {
                 val snapshot = firestore.collection("posts")
                     .whereEqualTo("authorId", userId)
-                    .orderBy("timestamp", Query.Direction.DESCENDING) // Order by newest first
+                    .orderBy("timestamp", Query.Direction.DESCENDING)
                     .get()
                     .await()
 
-                val posts = snapshot.toObjects(Post::class.java)
+                val posts = snapshot.documents.mapNotNull { doc ->
+                    val postData = doc.toObject(Post::class.java)
+                    postData?.copy(id = doc.id) 
+                }
+
                 _userPosts.value = posts
 
             } catch (e: Exception) {
@@ -75,7 +80,6 @@ class UserProfileViewModel : ViewModel() {
         }
     }
 
-
     fun fetchUserProfile() {
         val user = auth.currentUser ?: return
         _profileUiState.value = ProfileUiState.Loading
@@ -84,12 +88,10 @@ class UserProfileViewModel : ViewModel() {
                 val documentSnapshot = firestore.collection("users").document(user.uid).get().await()
                 if (documentSnapshot.exists()) {
                     val profileData = documentSnapshot.toObject(UserProfile::class.java)
+
                     if (profileData != null) {
                         _profileUiState.value = ProfileUiState.Success(profileData)
-
-                        // 🎯 CRITICAL: Fetch posts immediately after profile loads successfully
                         fetchUserPosts(user.uid)
-
                     } else {
                         _profileUiState.value = ProfileUiState.Error("Profile data not found.")
                     }
@@ -102,15 +104,17 @@ class UserProfileViewModel : ViewModel() {
         }
     }
 
-    // ... (saveUserProfile and resetUiState remain the same) ...
-
     fun saveUserProfile(
-        name: String,
+        title: String,
         username: String,
         description: String,
-        imageUrl: String?
+        profilePictureUrl: String,
+        googleMapLink: String,
+        rulesGuidance: String
     ) {
         _profileUiState.value = ProfileUiState.Loading
+        _isSaveCompleted.value = false
+
         viewModelScope.launch {
             val user = auth.currentUser
             if (user == null) {
@@ -119,29 +123,35 @@ class UserProfileViewModel : ViewModel() {
             }
 
             try {
-                val finalImageUrl = if (imageUrl.isNullOrBlank()) null else imageUrl
-
-                val userProfile = hashMapOf(
-                    "name" to name,
+                val promotionData = hashMapOf(
+                    "title" to title,
                     "username" to username,
                     "description" to description,
-                    "profilePictureUrl" to finalImageUrl
+                    "profilePictureUrl" to profilePictureUrl,
+                    "googleMapLink" to googleMapLink,
+                    "rulesGuidance" to rulesGuidance
                 )
 
                 firestore.collection("users").document(user.uid)
-                    .set(userProfile)
+                    .set(promotionData)
                     .await()
 
-                fetchUserProfile()
+                val savedProfile = UserProfile(username, description, title, profilePictureUrl, googleMapLink, rulesGuidance)
+
+                _profileUiState.value = ProfileUiState.Success(savedProfile)
+                _isSaveCompleted.value = true
 
             } catch (e: Exception) {
-                _profileUiState.value = ProfileUiState.Error(e.message ?: "Failed to save profile.")
+                _profileUiState.value = ProfileUiState.Error(e.message ?: "Failed to save promotion data.")
             }
         }
     }
 
-
     fun resetUiState() {
         _profileUiState.value = ProfileUiState.Idle
+    }
+
+    fun resetSaveCompleted() {
+        _isSaveCompleted.value = false
     }
 }

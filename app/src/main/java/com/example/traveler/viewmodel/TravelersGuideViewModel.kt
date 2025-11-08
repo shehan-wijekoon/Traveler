@@ -21,7 +21,6 @@ import org.tensorflow.lite.DataType
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-// The Reading data class is already correct.
 data class Reading(
     val altitude_meters: Double? = null,
     val pressure_hPa: Double? = null,
@@ -66,10 +65,6 @@ class TravelersGuideViewModel : ViewModel() {
     private val HUMIDITY_MAX = 100.0f
     private val PRESSURE_MIN = 900.0f
     private val PRESSURE_MAX = 1100.0f
-
-    init {
-        // We will call initiateDataFetch from the UI.
-    }
 
     fun loadModel(context: Context) {
         try {

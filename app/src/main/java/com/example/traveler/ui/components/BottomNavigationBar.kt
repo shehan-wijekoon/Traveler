@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.traveler.controllers.Screen
 
-// Define a sealed class for your nav bar items
 sealed class NavItem(val route: String, val icon: @Composable () -> Unit) {
     object Home : NavItem(
         route = Screen.Home.route,
@@ -37,7 +36,7 @@ sealed class NavItem(val route: String, val icon: @Composable () -> Unit) {
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
-    // ⚠️ Corrected: The navItems list contains only Home, Add, and Profile
+
     val navItems = listOf(NavItem.Home, NavItem.Add, NavItem.Profile)
 
     NavigationBar(

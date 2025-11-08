@@ -22,6 +22,8 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.example.traveler.viewmodel.HomeViewModel
 import com.example.traveler.ui.screens.TravelersGuideScreen
+import com.example.traveler.viewmodel.ContentViewModel
+import com.example.traveler.viewmodel.ContentViewModelFactory
 import com.example.traveler.viewmodel.TravelersGuideViewModel
 
 
@@ -44,10 +46,9 @@ sealed class Screen(val route: String) {
 fun Navigation(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    authViewModel: AuthViewModel,
-    userProfileViewModel: UserProfileViewModel = viewModel()
+    authViewModel: AuthViewModel
 ) {
-    // Initialize UploadPostViewModel here
+
     val uploadPostViewModel: UploadPostViewModel = viewModel()
     val homeViewModel: HomeViewModel = viewModel()
     val travelersGuideViewModel: TravelersGuideViewModel = viewModel()
@@ -94,6 +95,7 @@ fun Navigation(
         }
 
         composable(Screen.ProfileSetup.route) {
+            val userProfileViewModel: UserProfileViewModel = viewModel()
             ProfileSetupScreen(
                 modifier = modifier,
                 navController = navController,
@@ -105,15 +107,20 @@ fun Navigation(
             route = Screen.Content.route,
             arguments = listOf(navArgument("postId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val postId = backStackEntry.arguments?.getString("postId")
+            val postId = backStackEntry.arguments?.getString("postId") ?: "null"
+            val contentViewModel: ContentViewModel = viewModel(
+                factory = ContentViewModelFactory(postId)
+            )
+
             ContentScreen(
                 modifier = modifier,
                 navController = navController,
-                postId = postId ?: "null"
+                viewModel = contentViewModel
             )
         }
 
         composable(Screen.UserProfile.route) {
+            val userProfileViewModel: UserProfileViewModel = viewModel()
             UserProfileScreen(
                 modifier = modifier,
                 navController = navController,

@@ -20,18 +20,13 @@ fun LoadingScreen(
     navController: NavController
 ) {
     LaunchedEffect(Unit) {
-        // You can use a real task here, like checking user authentication status
-        delay(2000) // Delay for 2 seconds (2000 milliseconds)
+        delay(2000)
 
-        // Navigate to the next screen after the delay
-        // Example: if (isUserLoggedIn) navController.navigate(Screen.Home.route) else navController.navigate(Screen.SignUp.route)
         navController.navigate(Screen.Login.route) {
-            // This pops the LoadingScreen from the back stack
             popUpTo(Screen.Loading.route) { inclusive = true }
         }
     }
 
-    // A Box composable to center the content
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center

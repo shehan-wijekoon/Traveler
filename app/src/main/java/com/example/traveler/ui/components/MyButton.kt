@@ -14,7 +14,6 @@ fun MyButton(
     text: String,
     modifier: Modifier = Modifier.fillMaxWidth(),
     onClick: () -> Unit,
-    // Add this new parameter
     isLoading: Boolean = false
 ) {
     Button(
@@ -22,17 +21,14 @@ fun MyButton(
         modifier = modifier,
         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4B5320)),
         shape = RoundedCornerShape(30.dp),
-        // Disable the button when isLoading is true
         enabled = !isLoading
     ) {
         if (isLoading) {
-            // Show a progress indicator when the button is in a loading state
             CircularProgressIndicator(
                 modifier = Modifier.size(24.dp),
                 color = Color.White
             )
         } else {
-            // Show the text normally
             Text(text = text, color = Color.White)
         }
     }
