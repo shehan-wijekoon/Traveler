@@ -82,7 +82,7 @@ fun UserProfileScreen(
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    val profilePainter = if (userProfile.profilePictureUrl.isNullOrBlank()) {
+                    val profilePainter = if (userProfile.profilePictureUrl.isBlank()) {
                         painterResource(id = R.drawable.ic_profile_placeholder)
                     } else {
                         rememberAsyncImagePainter(model = userProfile.profilePictureUrl)
@@ -127,49 +127,6 @@ fun UserProfileScreen(
                         Spacer(modifier = Modifier.height(24.dp))
                     }
 
-                    // View on Map Button
-                    if (userProfile.googleMapLink.isNotBlank()) {
-                        Button(
-                            onClick = {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(userProfile.googleMapLink))
-                                if (intent.resolveActivity(context.packageManager) != null) {
-                                    context.startActivity(intent)
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 32.dp, vertical = 8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.LocationOn,
-                                contentDescription = "View Location on Map",
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text("View Location on Map")
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-
-                    if (userProfile.rulesGuidance.isNotBlank()) {
-                        Text(
-                            text = "Rules & Guidance",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 16.dp)
-                        )
-                        Text(
-                            text = userProfile.rulesGuidance,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
-                    }
-
                     Text(
                         text = "My Posts",
                         style = MaterialTheme.typography.titleLarge,
@@ -197,8 +154,11 @@ fun UserProfileScreen(
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                         ) {
                             items(userPosts) { post ->
+                                // FIX: Access the first URL from the new 'imageUrls' list
+                                val imageUrl = post.imageUrls.firstOrNull() ?: ""
+
                                 ContentCard(
-                                    imageUrl = post.imageUrl,
+                                    imageUrl = imageUrl, // Pass the first image URL for the thumbnail
                                     author = post.title,
                                     onClick = {
                                         navController.navigate(Screen.Content.createRoute(post.id))

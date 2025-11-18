@@ -43,23 +43,19 @@ fun ProfileSetupScreen(
 
     val scrollState = rememberScrollState()
 
-    var title by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var profilePictureUrl by remember { mutableStateOf("") }
-    var googleMapLink by remember { mutableStateOf("") }
-    var rulesGuidance by remember { mutableStateOf("") }
 
 
     LaunchedEffect(uiState) {
         if (uiState is ProfileUiState.Success) {
             val profile = (uiState as ProfileUiState.Success).userProfile
-            title = profile.title
+            name = profile.title
             username = profile.username
             description = profile.description
             profilePictureUrl = profile.profilePictureUrl
-            googleMapLink = profile.googleMapLink
-            rulesGuidance = profile.rulesGuidance
         }
         if (uiState is ProfileUiState.Error) {
             Toast.makeText(context, "Error: ${(uiState as ProfileUiState.Error).message}", Toast.LENGTH_LONG).show()
@@ -70,7 +66,6 @@ fun ProfileSetupScreen(
     LaunchedEffect(isSaveCompleted) {
         if (isSaveCompleted) {
             Toast.makeText(context, "Account saved successfully!", Toast.LENGTH_SHORT).show()
-            // Navigate to the main screen (e.g., Home)
             navController.navigate(Screen.Home.route) {
                 popUpTo(navController.graph.startDestinationId) { inclusive = true }
             }
@@ -93,7 +88,6 @@ fun ProfileSetupScreen(
         }
     ) { paddingValues ->
         Column(
-
             modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues)
@@ -145,11 +139,10 @@ fun ProfileSetupScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-
             OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text("Place/Destination Title") },
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Place/Destination Name") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next)
             )
@@ -175,47 +168,24 @@ fun ProfileSetupScreen(
                     .height(120.dp),
                 singleLine = false
             )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Google Maps Link
-            OutlinedTextField(
-                value = googleMapLink,
-                onValueChange = { googleMapLink = it },
-                label = { Text("Google Maps Link (Full URL)") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next, keyboardType = KeyboardType.Uri)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Rules/Special Guidance
-            OutlinedTextField(
-                value = rulesGuidance,
-                onValueChange = { rulesGuidance = it },
-                label = { Text("Rules/Special Guidance for Visitors") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp),
-                singleLine = false
-            )
             Spacer(modifier = Modifier.height(32.dp))
 
 
             Button(
                 onClick = {
 
-                    if (title.isBlank() || username.isBlank() || profilePictureUrl.isBlank()) {
-                        Toast.makeText(context, "Title, Username, and Profile Picture URL are required.", Toast.LENGTH_SHORT).show()
+                    if (name.isBlank() || username.isBlank() || profilePictureUrl.isBlank()) {
+                        Toast.makeText(context, "Name, Username, and Profile Picture URL are required.", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
 
 
+                    // CORRECTED: Calling the simplified saveUserProfile with only 4 arguments
                     userProfileViewModel.saveUserProfile(
-                        title = title,
+                        name = name,
                         username = username,
                         description = description,
-                        profilePictureUrl = profilePictureUrl,
-                        googleMapLink = googleMapLink,
-                        rulesGuidance = rulesGuidance
+                        profilePictureUrl = profilePictureUrl
                     )
                 },
                 modifier = Modifier

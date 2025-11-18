@@ -23,15 +23,14 @@ data class UserProfile(
     val username: String = "",
     val description: String = "",
     val title: String = "",
-    val profilePictureUrl: String = "",
-    val googleMapLink: String = "",
-    val rulesGuidance: String = ""
+    val profilePictureUrl: String = ""
 )
 
+// ⭐ REQUIRED CHANGE: Post model updated to use imageUrls: List<String>
 data class Post(
     val id: String = "",
     val authorId: String = "",
-    val imageUrl: String = "",
+    val imageUrls: List<String> = emptyList(), // CHANGED from imageUrl: String
     val rating: Double = 0.0,
     val timestamp: Long = 0L,
     val title: String = ""
@@ -56,6 +55,7 @@ class UserProfileViewModel : ViewModel() {
         fetchUserProfile()
     }
 
+    // ⭐ NO CHANGE NEEDED HERE - Logic remains the same, but now uses the updated Post model
     fun fetchUserPosts(userId: String) {
         if (userId.isBlank()) return
         viewModelScope.launch {
@@ -66,9 +66,10 @@ class UserProfileViewModel : ViewModel() {
                     .get()
                     .await()
 
+                // This line correctly deserializes the Firestore documents using the new Post class definition.
                 val posts = snapshot.documents.mapNotNull { doc ->
                     val postData = doc.toObject(Post::class.java)
-                    postData?.copy(id = doc.id) 
+                    postData?.copy(id = doc.id)
                 }
 
                 _userPosts.value = posts
@@ -105,12 +106,10 @@ class UserProfileViewModel : ViewModel() {
     }
 
     fun saveUserProfile(
-        title: String,
+        name: String,
         username: String,
         description: String,
-        profilePictureUrl: String,
-        googleMapLink: String,
-        rulesGuidance: String
+        profilePictureUrl: String
     ) {
         _profileUiState.value = ProfileUiState.Loading
         _isSaveCompleted.value = false
@@ -124,19 +123,17 @@ class UserProfileViewModel : ViewModel() {
 
             try {
                 val promotionData = hashMapOf(
-                    "title" to title,
+                    "title" to name,
                     "username" to username,
                     "description" to description,
-                    "profilePictureUrl" to profilePictureUrl,
-                    "googleMapLink" to googleMapLink,
-                    "rulesGuidance" to rulesGuidance
+                    "profilePictureUrl" to profilePictureUrl
                 )
 
                 firestore.collection("users").document(user.uid)
                     .set(promotionData)
                     .await()
 
-                val savedProfile = UserProfile(username, description, title, profilePictureUrl, googleMapLink, rulesGuidance)
+                val savedProfile = UserProfile(username, description, name, profilePictureUrl)
 
                 _profileUiState.value = ProfileUiState.Success(savedProfile)
                 _isSaveCompleted.value = true

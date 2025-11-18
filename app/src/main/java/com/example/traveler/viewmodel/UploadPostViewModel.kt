@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.lang.IllegalArgumentException
 
 sealed class UploadPostUiState {
     object Idle : UploadPostUiState()
@@ -28,10 +29,13 @@ class UploadPostViewModel : ViewModel() {
 
 
     fun uploadPost(
-        imageUrl: String,
+        // CHANGED: imageUrl to imageUrls (List<String>)
+        imageUrls: List<String>,
         description: String,
         title: String,
-        category: String
+        category: String,
+        googleMapLink: String,
+        rulesGuidance: String
     ) {
         val user = auth.currentUser
         if (user == null) {
@@ -43,21 +47,24 @@ class UploadPostViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-
-                if (imageUrl.isBlank()) {
-                    throw IllegalArgumentException("Image URL cannot be empty.")
+                // CHANGED VALIDATION: Check if the list is empty
+                if (imageUrls.isEmpty()) {
+                    throw IllegalArgumentException("At least one image URL must be provided.")
                 }
                 if (title.isBlank() || category.isBlank()) {
                     throw IllegalArgumentException("Title and Category must be provided.")
                 }
 
                 val newPost = Post(
-                    imageUrl = imageUrl,
+                    // CHANGED ASSIGNMENT
+                    imageUrls = imageUrls,
                     description = description,
                     title = title,
                     category = category,
                     authorId = user.uid,
-                    timestamp = System.currentTimeMillis()
+                    timestamp = System.currentTimeMillis(),
+                    googleMapLink = googleMapLink,
+                    rulesGuidance = rulesGuidance
                 )
 
 

@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -21,6 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -40,13 +43,23 @@ fun UploadPostScreen(
     val context = LocalContext.current
     val uiState by uploadPostViewModel.uiState.collectAsState()
 
-    var imageUrl by remember { mutableStateOf("") }
+    // CHANGED: imageUrl to handle multiple URLs input
+    var imageUrlsInput by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var title by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Select Category") }
     var expanded by remember { mutableStateOf(false) }
+    var googleMapLink by remember { mutableStateOf("") }
+    var rulesGuidance by remember { mutableStateOf("") }
 
     val categories = listOf("Jungle", "Beach", "Forest", "Mountain", "Waterfall")
+
+    // Logic to show the first image as a preview (if available)
+    val firstImageUrl = imageUrlsInput
+        .split(',', '\n')
+        .map { it.trim() }
+        .filter { it.isNotBlank() }
+        .firstOrNull() ?: ""
 
     LaunchedEffect(uiState) {
         when (uiState) {
@@ -98,9 +111,9 @@ fun UploadPostScreen(
                     .border(2.dp, Color.DarkGray, RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                if (imageUrl.isNotBlank()) {
+                if (firstImageUrl.isNotBlank()) {
                     Image(
-                        painter = rememberAsyncImagePainter(model = imageUrl),
+                        painter = rememberAsyncImagePainter(model = firstImageUrl),
                         contentDescription = "Selected image preview",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
@@ -117,7 +130,7 @@ fun UploadPostScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Paste a public image URL below",
+                            text = "Paste public image URLs below",
                             fontSize = 16.sp,
                             color = Color.DarkGray
                         )
@@ -127,7 +140,6 @@ fun UploadPostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // New: Title Input Field
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
@@ -138,13 +150,38 @@ fun UploadPostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // CHANGED: UI to accept multiple URLs (multi-line)
+            OutlinedTextField(
+                value = imageUrlsInput,
+                onValueChange = { imageUrlsInput = it },
+                label = { Text("Image URLs (one per line or comma-separated)") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 60.dp, max = 120.dp),
+                singleLine = false,
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next, keyboardType = KeyboardType.Uri)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
-                value = imageUrl,
-                onValueChange = { imageUrl = it },
-                label = { Text("Image URL") },
+                value = googleMapLink,
+                onValueChange = { googleMapLink = it },
+                label = { Text("Google Maps Link (Full URL)") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next, keyboardType = KeyboardType.Uri)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = rulesGuidance,
+                onValueChange = { rulesGuidance = it },
+                label = { Text("Rules/Special Guidance for Visitors (Optional)") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp),
+                singleLine = false
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -195,7 +232,7 @@ fun UploadPostScreen(
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text("Write a description...") },
+                label = { Text("Write a detailed description...") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp),
@@ -204,15 +241,30 @@ fun UploadPostScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            val isFormValid = imageUrl.isNotBlank() && description.isNotBlank() && title.isNotBlank() && selectedCategory != "Select Category"
+            // Logic to process input and check validity
+            val processedImageUrls = imageUrlsInput
+                .split(',', '\n')
+                .map { it.trim() }
+                .filter { it.isNotBlank() }
+
+            val isImageListValid = processedImageUrls.isNotEmpty()
+
+            val isFormValid = isImageListValid && description.isNotBlank() && title.isNotBlank() && selectedCategory != "Select Category"
 
 
             Button(
                 onClick = {
                     if (isFormValid) {
-                        uploadPostViewModel.uploadPost(imageUrl, description, title, selectedCategory)
+                        uploadPostViewModel.uploadPost(
+                            imageUrls = processedImageUrls,
+                            description = description,
+                            title = title,
+                            category = selectedCategory,
+                            googleMapLink = googleMapLink,
+                            rulesGuidance = rulesGuidance
+                        )
                     } else {
-                        Toast.makeText(context, "Please complete all fields (URL, Title, Category, and Description).", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "Please complete all required fields (Image URL(s), Title, Category, and Description).", Toast.LENGTH_LONG).show()
                     }
                 },
                 modifier = Modifier

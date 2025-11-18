@@ -90,8 +90,11 @@ fun HomeScreen(
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             items(posts) { post ->
+                                // FIX: Use the first URL from the new 'imageUrls' list
+                                val imageUrl = post.imageUrls.firstOrNull() ?: ""
+
                                 ContentCard(
-                                    imageUrl = post.imageUrl,
+                                    imageUrl = imageUrl,
                                     author = post.title,
                                     onClick = {
                                         navController.navigate(Screen.Content.createRoute(post.id))

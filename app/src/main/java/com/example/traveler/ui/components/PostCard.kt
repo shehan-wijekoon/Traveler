@@ -12,9 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.example.traveler.R // Assuming you have a placeholder resource
 import com.example.traveler.model.Post
 import com.example.traveler.model.UserProfile
 
@@ -24,6 +26,9 @@ fun PostCard(
     userProfile: UserProfile,
     modifier: Modifier = Modifier
 ) {
+    // Get the first image URL for display, or null if the list is empty
+    val primaryImageUrl = post.imageUrls.firstOrNull()
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -36,12 +41,30 @@ fun PostCard(
                 .fillMaxWidth()
                 .height(450.dp)
         ) {
-            Image(
-                painter = rememberAsyncImagePainter(model = post.imageUrl),
-                contentDescription = "Post image",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
+            // --- CHANGE START ---
+            if (primaryImageUrl != null) {
+                Image(
+                    painter = rememberAsyncImagePainter(model = primaryImageUrl),
+                    contentDescription = "Post image",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                // Placeholder if no image URLs are provided
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.LightGray),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No Image Available",
+                        color = Color.DarkGray,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+            // --- CHANGE END ---
 
 
             Row(
