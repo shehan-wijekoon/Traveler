@@ -2,6 +2,7 @@ package com.example.traveler.ui.screens
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -28,7 +29,12 @@ import com.example.traveler.ui.components.HeaderBar
 import com.example.traveler.ui.components.ImageCard
 import com.example.traveler.viewmodel.ContentUiState
 import com.example.traveler.viewmodel.ContentViewModel
+import com.example.traveler.controllers.Screen
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material3.ExperimentalMaterial3Api
 
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ContentScreen(
     modifier: Modifier = Modifier,
@@ -68,7 +74,6 @@ fun ContentScreen(
                         .verticalScroll(rememberScrollState())
                 ) {
 
-                    // CORRECTED: Using the new 'imageUrls' List<String> field
                     val imageUrls = post.imageUrls
 
                     Box(modifier = Modifier.fillMaxWidth()) {
@@ -110,7 +115,32 @@ fun ContentScreen(
                         description = post.description
                     )
 
-                    // Rules/Guidance Section
+                    if (post.hashtags.isNotEmpty()) {
+                        FlowRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.Start,
+                            verticalArrangement = Arrangement.Top,
+
+                        ) {
+                            post.hashtags.forEach { tag ->
+                                Text(
+                                    text = "#$tag",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .clickable {
+                                            navController.navigate(Screen.HashtagSearch.createRoute(tag))
+                                        }
+                                        .padding(end = 8.dp, bottom = 4.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+
                     if (post.rulesGuidance.isNotBlank()) {
                         Spacer(modifier = Modifier.height(24.dp))
                         Column(modifier = Modifier.padding(horizontal = 16.dp)) {

@@ -10,5 +10,5 @@ data class Post(
     val category: String = "",
     val googleMapLink: String = "",
     val rulesGuidance: String = "",
-
+    val hashtags: List<String> = emptyList()
 )

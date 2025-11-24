@@ -25,6 +25,7 @@ import com.example.traveler.ui.screens.TravelersGuideScreen
 import com.example.traveler.viewmodel.ContentViewModel
 import com.example.traveler.viewmodel.ContentViewModelFactory
 import com.example.traveler.viewmodel.TravelersGuideViewModel
+import com.example.traveler.ui.screens.HashtagSearchScreen
 
 
 sealed class Screen(val route: String) {
@@ -39,6 +40,9 @@ sealed class Screen(val route: String) {
     object UserProfile : Screen("user_profile")
     object UploadPost : Screen("upload_post")
     object TravelersGuide : Screen("travelers_guide")
+    object HashtagSearch : Screen("hashtag_search/{tag}") {
+        fun createRoute(tag: String) = "hashtag_search/$tag"
+    }
 }
 
 
@@ -133,6 +137,18 @@ fun Navigation(
                 modifier = modifier,
                 navController = navController,
                 uploadPostViewModel = uploadPostViewModel
+            )
+        }
+
+        composable(
+            route = Screen.HashtagSearch.route,
+            arguments = listOf(navArgument("tag") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val tagArgument = backStackEntry.arguments?.getString("tag") ?: ""
+            HashtagSearchScreen(
+                navController = navController,
+                viewModel = homeViewModel,
+                tagArgument = tagArgument
             )
         }
     }

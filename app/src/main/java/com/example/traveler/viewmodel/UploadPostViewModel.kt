@@ -29,13 +29,13 @@ class UploadPostViewModel : ViewModel() {
 
 
     fun uploadPost(
-        // CHANGED: imageUrl to imageUrls (List<String>)
         imageUrls: List<String>,
         description: String,
         title: String,
         category: String,
         googleMapLink: String,
-        rulesGuidance: String
+        rulesGuidance: String,
+        hashtagsInput: String
     ) {
         val user = auth.currentUser
         if (user == null) {
@@ -47,16 +47,19 @@ class UploadPostViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                // CHANGED VALIDATION: Check if the list is empty
                 if (imageUrls.isEmpty()) {
                     throw IllegalArgumentException("At least one image URL must be provided.")
                 }
                 if (title.isBlank() || category.isBlank()) {
                     throw IllegalArgumentException("Title and Category must be provided.")
                 }
+                val hashtagsList = hashtagsInput
+                    .split(' ', ',', ';', '\n')
+                    .map { it.trim().removePrefix("#").lowercase() }
+                    .filter { it.isNotBlank() }
+
 
                 val newPost = Post(
-                    // CHANGED ASSIGNMENT
                     imageUrls = imageUrls,
                     description = description,
                     title = title,
@@ -64,7 +67,8 @@ class UploadPostViewModel : ViewModel() {
                     authorId = user.uid,
                     timestamp = System.currentTimeMillis(),
                     googleMapLink = googleMapLink,
-                    rulesGuidance = rulesGuidance
+                    rulesGuidance = rulesGuidance,
+                    hashtags = hashtagsList
                 )
 
 

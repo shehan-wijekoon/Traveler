@@ -28,6 +28,10 @@ class HomeViewModel : ViewModel() {
 
     private val _selectedCategoryFilter = MutableStateFlow<String?>(null)
 
+    private val _hashtagPosts = MutableStateFlow<List<Post>>(emptyList())
+    val hashtagPosts: StateFlow<List<Post>> = _hashtagPosts.asStateFlow()
+
+
     init {
         fetchPosts()
     }
@@ -60,7 +64,6 @@ class HomeViewModel : ViewModel() {
 
                 val posts = snapshot.documents.mapNotNull { doc ->
                     val postData = doc.toObject(Post::class.java)
-
                     postData?.copy(id = doc.id)
                 }
 
@@ -69,6 +72,39 @@ class HomeViewModel : ViewModel() {
             } catch (e: Exception) {
                 println("Firestore Error: ${e.message}")
                 _uiState.value = HomeUiState.Error(e.message ?: "Failed to load posts.")
+            }
+        }
+    }
+
+
+    fun fetchPostsByHashtag(tag: String) {
+
+        val cleanTag = tag.trim().removePrefix("#").lowercase()
+
+        if (cleanTag.isEmpty()) {
+            _hashtagPosts.value = emptyList()
+            return
+        }
+
+        viewModelScope.launch {
+
+            try {
+                val snapshot = firestore.collection("posts")
+                    .whereArrayContains("hashtags", cleanTag)
+                    .orderBy("timestamp", Query.Direction.DESCENDING)
+                    .get()
+                    .await()
+
+                val filteredPosts = snapshot.documents.mapNotNull { doc ->
+                    val post = doc.toObject(Post::class.java)
+                    post?.copy(id = doc.id)
+                }
+
+                _hashtagPosts.value = filteredPosts
+
+            } catch (e: Exception) {
+                println("Firestore Error fetching hashtag posts: ${e.message}")
+                _hashtagPosts.value = emptyList()
             }
         }
     }

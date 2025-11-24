@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -42,9 +43,8 @@ fun UploadPostScreen(
 ) {
     val context = LocalContext.current
     val uiState by uploadPostViewModel.uiState.collectAsState()
-
-    // CHANGED: imageUrl to handle multiple URLs input
-    var imageUrlsInput by remember { mutableStateOf("") }
+    val imageUrls = remember { mutableStateListOf("") }
+    var hashtagsInput by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var title by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Select Category") }
@@ -54,12 +54,8 @@ fun UploadPostScreen(
 
     val categories = listOf("Jungle", "Beach", "Forest", "Mountain", "Waterfall")
 
-    // Logic to show the first image as a preview (if available)
-    val firstImageUrl = imageUrlsInput
-        .split(',', '\n')
-        .map { it.trim() }
-        .filter { it.isNotBlank() }
-        .firstOrNull() ?: ""
+    // Get the first non-blank image for the preview box
+    val previewImageUrl = imageUrls.firstOrNull { it.isNotBlank() } ?: ""
 
     LaunchedEffect(uiState) {
         when (uiState) {
@@ -102,6 +98,7 @@ fun UploadPostScreen(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
+            // --- IMAGE PREVIEW BOX ---
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -111,9 +108,9 @@ fun UploadPostScreen(
                     .border(2.dp, Color.DarkGray, RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                if (firstImageUrl.isNotBlank()) {
+                if (previewImageUrl.isNotBlank()) {
                     Image(
-                        painter = rememberAsyncImagePainter(model = firstImageUrl),
+                        painter = rememberAsyncImagePainter(model = previewImageUrl),
                         contentDescription = "Selected image preview",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
@@ -140,6 +137,7 @@ fun UploadPostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // --- POST TITLE ---
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
@@ -150,20 +148,60 @@ fun UploadPostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // CHANGED: UI to accept multiple URLs (multi-line)
+            // --- DYNAMIC IMAGE URL INPUTS ---
+            Text(
+                text = "Image URLs",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+            )
+
+            imageUrls.forEachIndexed { index, url ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = url,
+                        onValueChange = { newValue -> imageUrls[index] = newValue },
+                        label = { Text("Image Link ${index + 1}") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next, keyboardType = KeyboardType.Uri)
+                    )
+
+                    if (imageUrls.size > 1) {
+                        IconButton(onClick = { imageUrls.removeAt(index) }) {
+                            Icon(Icons.Default.Close, contentDescription = "Remove Link")
+                        }
+                    }
+                }
+            }
+
+            // PLUS BUTTON TO ADD NEW LINK FIELD
+            Button(
+                onClick = { imageUrls.add("") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add another link", tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                Spacer(Modifier.width(8.dp))
+                Text("Add Another Image Link", color = MaterialTheme.colorScheme.onSecondaryContainer)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // --- HASHTAGS INPUT ---
             OutlinedTextField(
-                value = imageUrlsInput,
-                onValueChange = { imageUrlsInput = it },
-                label = { Text("Image URLs (one per line or comma-separated)") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 60.dp, max = 120.dp),
-                singleLine = false,
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next, keyboardType = KeyboardType.Uri)
+                value = hashtagsInput,
+                onValueChange = { hashtagsInput = it },
+                label = { Text("Hashtags (e.g., #travel #nature)") },
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // --- GOOGLE MAPS LINK ---
             OutlinedTextField(
                 value = googleMapLink,
                 onValueChange = { googleMapLink = it },
@@ -174,6 +212,7 @@ fun UploadPostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // --- RULES/SPECIAL GUIDANCE ---
             OutlinedTextField(
                 value = rulesGuidance,
                 onValueChange = { rulesGuidance = it },
@@ -187,6 +226,7 @@ fun UploadPostScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
 
+            // --- CATEGORY DROPDOWN ---
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -229,6 +269,7 @@ fun UploadPostScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
 
+            // --- DESCRIPTION ---
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
@@ -241,13 +282,9 @@ fun UploadPostScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Logic to process input and check validity
-            val processedImageUrls = imageUrlsInput
-                .split(',', '\n')
-                .map { it.trim() }
-                .filter { it.isNotBlank() }
-
-            val isImageListValid = processedImageUrls.isNotEmpty()
+            // --- FORM VALIDATION AND PROCESSING ---
+            val finalImageUrls = imageUrls.filter { it.isNotBlank() }
+            val isImageListValid = finalImageUrls.isNotEmpty()
 
             val isFormValid = isImageListValid && description.isNotBlank() && title.isNotBlank() && selectedCategory != "Select Category"
 
@@ -256,15 +293,16 @@ fun UploadPostScreen(
                 onClick = {
                     if (isFormValid) {
                         uploadPostViewModel.uploadPost(
-                            imageUrls = processedImageUrls,
+                            imageUrls = finalImageUrls,
                             description = description,
                             title = title,
                             category = selectedCategory,
                             googleMapLink = googleMapLink,
-                            rulesGuidance = rulesGuidance
+                            rulesGuidance = rulesGuidance,
+                            hashtagsInput = hashtagsInput
                         )
                     } else {
-                        Toast.makeText(context, "Please complete all required fields (Image URL(s), Title, Category, and Description).", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "Please provide at least one Image URL and complete all required fields.", Toast.LENGTH_LONG).show()
                     }
                 },
                 modifier = Modifier
